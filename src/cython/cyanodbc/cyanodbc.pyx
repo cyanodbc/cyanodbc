@@ -1,18 +1,33 @@
 # distutils: language = c++
 
-from nanodbc cimport connection
+
+cimport nanodbc
 from libcpp.string cimport string
 
+cdef class Result:
+    cdef nanodbc.result c_result
+
+    def __cinit__(self):
+        self.c_result = nanodbc.result()
+
+    @property
+    def rowset_size(self):
+        return self.c_result.rowset_size()
+
 cdef class Connection:
-    cdef connection c_cnxn
+    cdef nanodbc.connection c_cnxn
 
     def __cinit__(self, connstr=None, long timeout=0):
         if connstr:
-            self.c_cnxn = connection(connstr.encode('UTF-8'))
+            self.c_cnxn = nanodbc.connection(connstr.encode(), timeout)
 
-    #def connect(self, connstr,  long timeout=0):
-    #    self.c_cnxn = self.c_cnxn.connect(connstr.encode('UTF-8'), timeout)
-    
+    def connect(self, connstr, username=None, password=None, long timeout=0):
+        if username and password:
+            self.c_cnxn.connect(connstr.encode(),username.encode(), password.encode(), timeout)
+        else:
+            self.c_cnxn.connect(connstr.encode(), timeout)
+
+
     @property
     def dbms_name(self):
         return self.c_cnxn.dbms_name().decode('UTF-8')
@@ -30,3 +45,6 @@ cdef class Connection:
         return self.c_cnxn.catalog_name().decode('UTF-8')
 
 
+# def execute(connection, query, long batch_operations, long timeout):
+#     if isinstance(connection, Connection):
+#         execute()
