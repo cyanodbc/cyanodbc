@@ -5,8 +5,10 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
         connection() except +
         connection(const string& connection_string, long timeout = 0) except +
 
-        connection connect(const string_type &dsn, const string_type &user, const string_type &pass, long timeout=0)
-        connection connect(const string_type &connection_string, long timeout=0)
+        connection connect(const string& , const string&, const string&, long timeout=0) except +
+
+        #connection connect(const string& connection_string, long timeout=0)
+
 
         string dbms_name() const
         string dbms_version() const

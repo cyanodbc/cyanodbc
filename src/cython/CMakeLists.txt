@@ -1,15 +1,17 @@
 FILE(COPY cyanodbc DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 FILE(GLOB_RECURSE PYX_FILES
-    RELATIVE ${CMAKE_CURRENT_BINARY_DIR}
+    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     CONFIGURE_DEPENDS
-    ${CMAKE_CURRENT_BINARY_DIR}/*.pyx
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.pyx
 
 )
 
 list(JOIN PYX_FILES " " PYX_FILES_ARG)
 
+find_program(CYTHON cython)
+
 add_custom_command(OUTPUT cyanodbc.cpp
-                   COMMAND cython --cplus -3 -p --line-directives  -o cyanodbc.cpp ${PYX_FILES}
+                   COMMAND ${CYTHON} --cplus -3 -p --line-directives  -o cyanodbc.cpp ${PYX_FILES}
                    DEPENDS ${PYX_FILES}
                    COMMENT "Running Cython"
                    )
