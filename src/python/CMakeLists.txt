@@ -1,6 +1,0 @@
-cmake_minimum_required(VERSION 3.12)
-find_program(PYTHON "python")
-find_package(rectangle REQUIRED)
-find_package (Python3 COMPONENTS Development)
-add_library(rect SHARED rect.cpp)
-target_link_libraries(rect rectangle Python3::Python)
