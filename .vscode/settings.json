@@ -1,3 +1,9 @@
 {
-    "cmake.configureOnOpen": true
+    "cmake.configureOnOpen": true,
+    "cmake.configureSettings": {
+        "CMAKE_PROGRAM_PATH": "C:\\Users\\Dhushyanth Ramasamy\\Miniconda3\\envs\\py36\\Scripts",
+        "Python3_ROOT": "C:\\Users\\Dhushyanth Ramasamy\\Miniconda3\\envs\\py36"
+    },
+    "cmake.loggingLevel": "trace",
+
 }

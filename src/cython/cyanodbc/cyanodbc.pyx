@@ -10,8 +10,8 @@ cdef class Connection:
         if connstr:
             self.c_cnxn = connection(connstr.encode('UTF-8'))
 
-    def connect(self, connstr,  long timeout=0):
-        self.c_cnxn = self.c_cnxn.connect(connstr.encode('UTF-8'), timeout)
+    #def connect(self, connstr,  long timeout=0):
+    #    self.c_cnxn = self.c_cnxn.connect(connstr.encode('UTF-8'), timeout)
     
     @property
     def dbms_name(self):
