@@ -15,10 +15,11 @@ add_custom_command(OUTPUT cyanodbc.cpp
                    DEPENDS ${PYX_FILES}
                    COMMENT "Running Cython"
                    )
-message("PYX_FILES: ${PYX_FILES}")
+
+find_program(PYTHON python)
 
 find_package(nanodbc REQUIRED)
-find_package (Python3 REQUIRED COMPONENTS Development)
+find_package (Python3 3.6 EXACT REQUIRED COMPONENTS Development)
 
 add_library(cyanodbc SHARED
             cyanodbc.cpp)
