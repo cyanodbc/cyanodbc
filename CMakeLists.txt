@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(cyanodbc CXX)
+project(Cyanodbc CXX)
 
 # NOTE: All options follow CMake convention:
 #       If no initial value is provided, OFF is used.
@@ -67,5 +67,9 @@ elseif(MSVC)
   endif()
 endif()
 
-
+########################################
+## build cyanodbc extension
+########################################
 add_subdirectory(src/cython)
+add_subdirectory(src/python)
+
