@@ -1,0 +1,7 @@
+from setuptools import setup, find_packages
+
+setup(name='${PROJECT_NAME}',
+      version='${CYANODBC_VERSION}',
+      package_dir={ '': '.' },
+      package_data={'cyanodbc':['*.*']},
+      packages=['cyanodbc'])
