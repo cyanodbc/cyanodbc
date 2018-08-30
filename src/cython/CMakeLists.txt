@@ -6,15 +6,20 @@ FILE(GLOB_RECURSE PYX_FILES
 
 )
 
-list(JOIN PYX_FILES " " PYX_FILES_ARG)
+
+list(TRANSFORM PYX_FILES REPLACE "\\.pyx\$" ".cpp"
+    OUTPUT_VARIABLE CPP_FILES)
 
 find_program(CYTHON cython)
 
-add_custom_command(OUTPUT cyanodbc.cpp
-                   COMMAND ${CYTHON} --cplus -3 -p --line-directives  -o cyanodbc.cpp ${PYX_FILES}
-                   DEPENDS ${PYX_FILES}
-                   COMMENT "Running Cython"
-                   )
+
+message("Pyx files: ${PYX_FILES}, Cpp files: ${CPP_FILES}")
+add_custom_command(
+    OUTPUT ${CPP_FILES}
+    COMMAND ${CYTHON} --cplus -3 -p --line-directives ${PYX_FILES}
+    DEPENDS ${PYX_FILES}
+    COMMENT "Running Cython"
+    COMMAND_EXPAND_LISTS)
 
 find_program(PYTHON python)
 
@@ -22,7 +27,7 @@ find_package(nanodbc REQUIRED)
 find_package (Python3 3.6 EXACT REQUIRED COMPONENTS Development)
 
 add_library(cyanodbc SHARED
-            cyanodbc.cpp)
+    ${CPP_FILES})
 target_link_libraries(cyanodbc nanodbc Python3::Python)
 
 set_property (TARGET cyanodbc PROPERTY PREFIX "")
