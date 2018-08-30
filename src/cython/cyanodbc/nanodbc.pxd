@@ -3,6 +3,7 @@ from libcpp.string cimport string
 
 
 cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
+    result execute(connection& conn, const string& query, long batch_operations, long timeout) except +
 
     cdef cppclass result:
         result() except +
@@ -41,14 +42,16 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
     cdef cppclass connection:
 
         connection() except +
-        connection(const string&, long) except +
+        # connection(const string&, long) except +
 
         void connect(const string&, long)
         void connect(const string&, const string&, const string& , long)
 
-
-        string dbms_name() const
-        string dbms_version() const
-        string driver_name() const
-        string catalog_name() const
-
+        bint connected() const
+        # size_t transactions() const
+        T get_info[T](short info_type) const
+        # string dbms_name() const
+        # string dbms_version() const
+        # string driver_name() const
+        # string database_name() const
+        # string catalog_name() const

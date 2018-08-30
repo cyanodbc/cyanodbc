@@ -5,30 +5,17 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "test",
+            "type": "shell",
+            "command": [
+                "call activate py36 &&",
+                "pytest"
+            ]
+        },
+        {
             "label": "clean",
             "type": "shell",
             "command": "rmdir /s /q \"${workspaceFolder}\\build\" & echo 'build' folder deleted"
-        },
-        {
-            "label": "configure",
-            "type": "shell",
-            "command": [
-                // "mkdir \"${workspaceFolder}\\build\" &",
-                // "cd \"${workspaceFolder}\\build\" &",
-                // "call activate cython_env &",
-                // "call \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\VsDevCmd.bat\" -vcvars_ver=14.0 -arch=amd64 -host_arch=amd64 &&",
-                // "cmake -DCMAKE_INSTALL_PREFIX=C:/Users/v13652 -G Ninja \"${workspaceFolder}\""
-            ]
-        },
-        {
-            "label": "build",
-            "type": "shell",
-            "command": [
-                // "cd \"${workspaceFolder}\\build\" &",
-                // "call activate cython_env &",
-                // "call \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\VsDevCmd.bat\" -vcvars_ver=14.0 -arch=amd64 -host_arch=amd64 &&",
-                // "cmake --build \"${workspaceFolder}\\build\" --config RelWithDebInfo"
-            ]
         },
         {
             "label": "clean build",
