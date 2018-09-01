@@ -6,5 +6,8 @@
     },
     "cmake.loggingLevel": "trace",
     "python.pythonPath": "C:\\Users\\Dhushyanth Ramasamy\\Miniconda3\\envs\\py36\\python.exe",
+    "terminal.integrated.env.windows": {
+        
+    },
 
 }
