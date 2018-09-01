@@ -1,10 +1,18 @@
 from libcpp.string cimport string
 
+from cpython.ref cimport PyObject
+from libc.stddef cimport wchar_t
+from wstring cimport wstring
+
+cdef extern from "Python.h":
+    PyObject* PyUnicode_FromWideChar(wchar_t *w, Py_ssize_t size)
 
 
 cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
-    result execute(connection& conn, const string& query, long batch_operations, long timeout) except +
+    ctypedef wstring wide_string
 
+    result execute(connection& conn, const string& query, long batch_operations, long timeout) except +
+    
     cdef cppclass result:
         result() except +
 
@@ -38,6 +46,7 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
         int column_c_datatype(const string& ) const
 
         bint next_result()
+        bint operator bool()
 
     cdef cppclass connection:
 
@@ -50,7 +59,7 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
         bint connected() const
         # size_t transactions() const
         T get_info[T](short info_type) const
-        # string dbms_name() const
+        string dbms_name() const
         # string dbms_version() const
         # string driver_name() const
         # string database_name() const

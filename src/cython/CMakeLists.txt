@@ -16,7 +16,7 @@ find_program(CYTHON cython)
 message("Pyx files: ${PYX_FILES}, Cpp files: ${CPP_FILES}")
 add_custom_command(
     OUTPUT ${CPP_FILES}
-    COMMAND ${CYTHON} --cplus -3 -p --line-directives ${PYX_FILES}
+    COMMAND ${CYTHON} --cplus -a -3 -p --line-directives ${PYX_FILES}
     DEPENDS ${PYX_FILES}
     COMMENT "Running Cython"
     COMMAND_EXPAND_LISTS)
