@@ -53,8 +53,8 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
         connection() except +
         # connection(const string&, long) except +
 
-        void connect(const string&, long)
-        void connect(const string&, const string&, const string& , long)
+        void connect(const string&, long) except +
+        void connect(const string&, const string&, const string& , long) except +
 
         bint connected() const
         # size_t transactions() const
