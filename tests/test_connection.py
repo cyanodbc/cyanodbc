@@ -77,13 +77,10 @@ def test_cursor_wlongvarchar_to_py(connection, sqlite_db):
         assert row in [('💮', ), ('RHAT', ), ('IBM',), ('DELL',)]
 
 
-
-#TODO This fails somehow
-# import cyanodbc
-# connection = cyanodbc.Connection()
-# connection.connect("DRIVER=SQLite3 ODBC Driver;Database="
-# "example.db;LongNames=0;Timeout=1000;NoTXN=0;SyncPragma=NORMAL;StepAPI=0;")
-# cursor = connection.cursor()
-# cursor.execute("select 'a'")
-# connection.connect("DRIVER=SQLite3 ODBC Driver;Database="
-# "example.db;LongNames=0;Timeout=1000;NoTXN=0;SyncPragma=NORMAL;StepAPI=0;")
+def test_multiple_open_connection(connection, sqlite_db):
+    connection.connect("DRIVER=SQLite3 ODBC Driver;Database="
+    "example.db;LongNames=0;Timeout=1000;NoTXN=0;SyncPragma=NORMAL;StepAPI=0;")
+    cursor = connection.cursor()
+    cursor.execute("select 'a'")
+    connection.connect("DRIVER=SQLite3 ODBC Driver;Database="
+    "example.db;LongNames=0;Timeout=1000;NoTXN=0;SyncPragma=NORMAL;StepAPI=0;")
