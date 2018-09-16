@@ -21,14 +21,18 @@ add_custom_command(
     COMMENT "Running Cython"
     COMMAND_EXPAND_LISTS)
 
-find_program(PYTHON python)
+
 
 find_package(nanodbc REQUIRED)
-find_package (Python3 3.6 EXACT REQUIRED COMPONENTS Development)
+
+# Include Interpreter component to ensure libraries/includes are compatible
+find_package (Python3 ${CYANODBC_TARGET_PYTHON} EXACT REQUIRED COMPONENTS Interpreter  Development)
 
 add_library(cyanodbc SHARED
     ${CPP_FILES})
 target_link_libraries(cyanodbc nanodbc Python3::Python)
+target_include_directories(cyanodbc PRIVATE ${Python3_INCLUDE_DIRS})
+
 
 set_property (TARGET cyanodbc PROPERTY PREFIX "")
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")

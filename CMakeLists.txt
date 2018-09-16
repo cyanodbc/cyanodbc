@@ -11,7 +11,7 @@ option(BUILD_SHARED_LIBS "Build shared library" OFF)
 option(CYANODBC_DISABLE_INSTALL "Do not generate install target" OFF)
 option(CYANODBC_DISABLE_TESTS "Do not build tests" OFF)
 option(CYANODBC_ENABLE_COVERAGE "Enable test coverage reporting for GCC/clang" OFF)
-
+option(CYANODBC_TARGET_PYTHON "Target Python Version to build against" "3.7")
 ########################################
 ## cyanodbc version
 ########################################

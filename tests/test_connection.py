@@ -76,7 +76,7 @@ def test_cursor_wlongvarchar_to_py(connection, sqlite_db):
     for row in rows:
         assert row in [('💮', ), ('RHAT', ), ('IBM',), ('DELL',)]
 
-
+@pytest.mark.skip(reason="Missing functionality")
 def test_multiple_open_connection(connection, sqlite_db):
     connection.connect("DRIVER=SQLite3 ODBC Driver;Database="
     "example.db;LongNames=0;Timeout=1000;NoTXN=0;SyncPragma=NORMAL;StepAPI=0;")

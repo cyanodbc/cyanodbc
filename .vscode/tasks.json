@@ -28,7 +28,7 @@
                 "call activate py36 &",
                 "cd \"${workspaceFolder}\\build\" &",
                 "cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\"${env:USERPROFILE}\" ",
-                " -DPython3_ROOT:PATH=\"${env:USERPROFILE}\\Miniconda3\\envs\\py36\" -G Ninja \"${workspaceFolder}\" &&",                
+                " -G Ninja \"${workspaceFolder}\" &&",                
                 "cmake --build \"${workspaceFolder}\\build\""
             ],
             "problemMatcher": []
