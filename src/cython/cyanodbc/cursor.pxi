@@ -43,7 +43,8 @@ cdef class Cursor:
     def __init__(self, Connection connection not None):
         self._connection = connection
         self._datatype_get_map = {
-            SQLTypes.SQL_WLONGVARCHAR : self._wlongvarchar_to_py
+            SQLTypes.SQL_WLONGVARCHAR : self._wlongvarchar_to_py,
+            SQLTypes.SQL_LONGVARCHAR : self._wlongvarchar_to_py,
         }
         self.c_description = None
 

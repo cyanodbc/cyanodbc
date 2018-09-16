@@ -56,7 +56,7 @@ def test_connection_properties(connection):
     assert connection.connected
     assert connection.get_info(SQLGetInfo.SQL_DBMS_NAME) == "SQLite"
     assert connection.get_info(SQLGetInfo.SQL_DATABASE_NAME) == "example.db"
-    assert connection.get_info(SQLGetInfo.SQL_DRIVER_NAME) == "sqlite3odbc.dll"
+    assert connection.get_info(SQLGetInfo.SQL_DRIVER_NAME).startswith("sqlite3odbc")
 
 def test_cursor_description(connection, sqlite_db):
     cursor = connection.cursor()

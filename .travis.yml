@@ -1,0 +1,30 @@
+language: minimal
+os: osx
+before_install:
+  - brew bundle
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
+  - bash ~/miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - conda create -q -y -n py35 python=3.5
+  - source $HOME/miniconda/bin/activate py35
+  - conda install -q -y cmake pytest cython ninja
+
+install:
+  - git clone https://github.com/nanodbc/nanodbc.git $HOME/nanodbc
+  - mkdir $HOME/nanodbc/build
+  - cd $HOME/nanodbc/build
+  - cmake -G Ninja -DNANODBC_ENABLE_BOOST=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME -DNANODBC_DISABLE_TESTS=ON ..
+  - cmake --build . --target install
+
+script:
+  - cd $TRAVIS_BUILD_DIR
+  - mkdir build
+  - cd build
+  - LDFLAGS="-undefined dynamic_lookup" cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 ..
+  - cmake --build .
+  - pip install src/python/dist/Cyanodbc-0.0.1-py3-none-any.whl
+  - cp $TRAVIS_BUILD_DIR/ci/.odbcinst.ini ~/
+  - pytest $TRAVIS_BUILD_DIR/tests
+
+
+

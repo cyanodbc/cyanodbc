@@ -30,13 +30,19 @@ find_package (Python3 ${CYANODBC_TARGET_PYTHON} EXACT REQUIRED COMPONENTS Interp
 
 add_library(cyanodbc SHARED
     ${CPP_FILES})
-target_link_libraries(cyanodbc nanodbc Python3::Python)
+
 target_include_directories(cyanodbc PRIVATE ${Python3_INCLUDE_DIRS})
 
 
 set_property (TARGET cyanodbc PROPERTY PREFIX "")
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    target_link_libraries(cyanodbc nanodbc Python3::Python)
     set_property (TARGET cyanodbc PROPERTY SUFFIX ".pyd")
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    target_link_libraries(cyanodbc nanodbc)
+    set_property (TARGET cyanodbc PROPERTY SUFFIX ".so")
 endif()
 
   set(CYANODBC_CONFIG cyanodbc-config)
