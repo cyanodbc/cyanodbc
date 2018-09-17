@@ -5,11 +5,15 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "test",
+            "label": "osx build",
             "type": "shell",
             "command": [
-                "call activate py36 &&",
-                "pytest"
+                "source activate py35 \n",
+                "rm -rf \"${workspaceFolder}/build\" \n",
+                "mkdir \"${workspaceFolder}/build\" \n",
+                "cd \"${workspaceFolder}/build\" \n",
+                "LDFLAGS=\"-undefined dynamic_lookup\" cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 \"${workspaceFolder}\" \n",
+                "cmake --build \"${workspaceFolder}/build\" \n"
             ]
         },
         {

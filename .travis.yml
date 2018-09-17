@@ -20,7 +20,7 @@ script:
   - cd $TRAVIS_BUILD_DIR
   - mkdir build
   - cd build
-  - LDFLAGS="-undefined dynamic_lookup" cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 ..
+  - LDFLAGS="-undefined dynamic_lookup" cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 ..
   - cmake --build .
   - pip install src/python/dist/Cyanodbc-0.0.1-py3-none-any.whl
   - cp $TRAVIS_BUILD_DIR/ci/.odbcinst.ini ~/

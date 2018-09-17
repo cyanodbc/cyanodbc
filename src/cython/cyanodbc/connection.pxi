@@ -5,7 +5,7 @@ cdef class Connection:
     def __cinit__(self):
         self.c_cnxn = nanodbc.connection()
 
-    def connect(self, dsn, username=None, password=None, long timeout=0):
+    def _connect(self, dsn, username=None, password=None, long timeout=0):
         if username and password:
             self.c_cnxn.connect(dsn.encode(),username.encode(), password.encode(), timeout)
         else:
@@ -45,3 +45,8 @@ cdef class Connection:
     # @property
     # def catalog_name(self):
     #     return self.c_cnxn.catalog_name().decode('UTF-8')
+
+def connect(dsn, username=None, password=None, long timeout=0):
+    cnxn = Connection()
+    cnxn._connect(dsn, username, password, timeout)
+    return cnxn

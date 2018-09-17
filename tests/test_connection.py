@@ -42,17 +42,11 @@ def sqlite_db():
 
 @pytest.fixture(scope="module")
 def connection(sqlite_db):
-    cnxn = cyanodbc.Connection()
-    cnxn.connect("DRIVER=SQLite3 ODBC Driver;Database="
+    cnxn = cyanodbc.connect("DRIVER=SQLite3 ODBC Driver;Database="
     "example.db;LongNames=0;Timeout=1000;NoTXN=0;SyncPragma=NORMAL;StepAPI=0;")
     yield cnxn
 
-def test_connection_create():
-    cnxn = cyanodbc.Connection()
-    assert not cnxn.connected
-
 def test_connection_properties(connection):
-    
     assert connection.connected
     assert connection.get_info(SQLGetInfo.SQL_DBMS_NAME) == "SQLite"
     assert connection.get_info(SQLGetInfo.SQL_DATABASE_NAME) == "example.db"
@@ -76,11 +70,12 @@ def test_cursor_wlongvarchar_to_py(connection, sqlite_db):
     for row in rows:
         assert row in [('💮', ), ('RHAT', ), ('IBM',), ('DELL',)]
 
-@pytest.mark.skip(reason="Missing functionality")
-def test_multiple_open_connection(connection, sqlite_db):
-    connection.connect("DRIVER=SQLite3 ODBC Driver;Database="
+def test_multiple_open_connection():
+    connection = cyanodbc.connect("DRIVER=SQLite3 ODBC Driver;Database="
     "example.db;LongNames=0;Timeout=1000;NoTXN=0;SyncPragma=NORMAL;StepAPI=0;")
     cursor = connection.cursor()
     cursor.execute("select 'a'")
-    connection.connect("DRIVER=SQLite3 ODBC Driver;Database="
+    connection = cyanodbc.connect("DRIVER=SQLite3 ODBC Driver;Database="
     "example.db;LongNames=0;Timeout=1000;NoTXN=0;SyncPragma=NORMAL;StepAPI=0;")
+    cursor = connection.cursor()
+    cursor.execute("select 'a'")
