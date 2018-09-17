@@ -9,5 +9,6 @@
     "terminal.integrated.env.windows": {
         
     },
+    "python.linting.enabled": false,
 
 }

@@ -107,5 +107,6 @@ class SQLTypes:
     SQL_WVARCHAR                        = (-9)
     SQL_WLONGVARCHAR                    = (-10)
     SQL_GUID                            = (-11)
+    SQL_NVARCHAR                        = (-10) #Defined in nanodbc.cpp
 
 

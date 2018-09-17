@@ -8,6 +8,7 @@ before_install:
   - conda create -q -y -n py35 python=3.5
   - source $HOME/miniconda/bin/activate py35
   - conda install -q -y cmake pytest cython ninja
+  - brew services run postgresql
 
 install:
   - git clone https://github.com/nanodbc/nanodbc.git $HOME/nanodbc

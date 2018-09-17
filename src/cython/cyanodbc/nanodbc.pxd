@@ -1,8 +1,10 @@
 from libcpp.string cimport string
-
+from libc.stdint cimport int16_t, int32_t
 from cpython.ref cimport PyObject
 from libc.stddef cimport wchar_t
 from wstring cimport wstring
+
+ctypedef unsigned long ULong
 
 cdef extern from "Python.h":
     PyObject* PyUnicode_FromWideChar(wchar_t *w, Py_ssize_t size)
@@ -13,6 +15,25 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
 
     result execute(connection& conn, const string& query, long batch_operations, long timeout) except +
     
+    cdef cppclass date:
+        int16_t year
+        int16_t month
+        int16_t day
+
+    cdef cppclass time:
+        int16_t hour
+        int16_t min
+        int16_t sec
+
+    cdef cppclass timestamp:
+        int16_t year
+        int16_t month
+        int16_t day
+        int16_t hour
+        int16_t min
+        int16_t sec
+        int32_t fract
+
     cdef cppclass result:
         result() except +
 
