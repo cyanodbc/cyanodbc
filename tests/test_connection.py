@@ -1,11 +1,11 @@
 import pytest
 import cyanodbc
-from cyanodbc.constants import SQLGetInfo
+from cyanodbc import SQLGetInfo
 import sqlite3
 import os
 import datetime
 
-
+pytestmark = pytest.mark.skip("For local Testing only")
 @pytest.fixture(scope="module")
 def sqlite_db():
     conn = sqlite3.connect('example.db')
@@ -33,15 +33,14 @@ def connection(sqlite_db):
     yield cnxn
 
 def test_connection_properties(connection):
-    assert connection.connected
+
     assert connection.get_info(SQLGetInfo.SQL_DBMS_NAME) == "SQLite"
     assert connection.get_info(SQLGetInfo.SQL_DATABASE_NAME) == "example.db"
     assert connection.get_info(SQLGetInfo.SQL_DRIVER_NAME).startswith("sqlite3odbc")
 
 def test_cursor_description(connection):
     cursor = connection.cursor()
-    batch_operations = 9
-    cursor.execute("select * from [Artist]", batch_operations)
+    cursor.execute("select * from [Artist]")
     description = cursor.description
     assert description
     names = tuple([col_desc[0] for col_desc in description])
@@ -90,6 +89,9 @@ def test_multiple_open_connection():
     "example.db;LongNames=0;Timeout=1000;NoTXN=0;SyncPragma=NORMAL;StepAPI=0;")
     cursor = connection.cursor()
     cursor.execute("select 'a'")
+
+
+
 
 # Test for Integer
 

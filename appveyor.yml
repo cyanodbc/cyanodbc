@@ -51,12 +51,17 @@ services:
 
 # scripts that run after cloning repository
 install:
+
   - cmd: set PATH=%PATH%;C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts
   - cmd: conda create -q -y -n py35 python=3.5
   - cmd: call activate py35
   - cmd: conda install -q -y cmake pytest cython ninja 
   - cmd: call deactivate
-  - cmd: c:\projects\myproject\vendor\sqliteodbc_w64.exe /S
+  - cmd: curl -fsS -o sqliteodbc_w64.exe http://www.ch-werner.de/sqliteodbc/sqliteodbc_w64.exe
+  - cmd: sqliteodbc_w64.exe /S
+  - cmd: curl -fsS -o psqlodbc_10_03_0000-x64.zip https://ftp.postgresql.org/pub/odbc/versions/msi/psqlodbc_10_03_0000-x64.zip
+  - cmd: 7z.exe x psqlodbc_10_03_0000-x64.zip
+  - cmd: msiexec /i psqlodbc_x64.msi /qn /norestart
   - cmd: git clone https://github.com/nanodbc/nanodbc.git c:\projects\nanodbc
   
   

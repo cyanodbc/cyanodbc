@@ -1,11 +1,5 @@
 
 
-from libc.stddef cimport wchar_t
-from wstring cimport const_wchar_t
-from collections import namedtuple
-
-import decimal
-
 ColumnDescription = namedtuple(
     'ColumnDescription',
     ['name', 'type_code', 'display_size', 'internal_size', 'precision', 'scale', 'null_ok'],
@@ -13,7 +7,6 @@ ColumnDescription = namedtuple(
 
 cdef class _Description:
     cdef list column_descriptions
-    cdef object row_definition
 
     def __init__(self):
         self.column_descriptions = []
@@ -33,6 +26,34 @@ cdef class Cursor:
 
     cdef Connection _connection
     cdef _Description c_description
+
+    cdef int _arraysize
+    cdef int _timeout
+
+    @property
+    def timeout(self):
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, value):
+        self._timeout = value
+
+    @property
+    def arraysize(self):
+        return self._arraysize
+
+    @arraysize.setter
+    def arraysize(self, int value):
+        self._arraysize = value
+
+    @staticmethod
+    def setinputsizes(sizes):
+        return
+
+    @staticmethod
+    def setoutputsize(size, column=0):
+        return
+
 
     def _chartype_to_py(self, short i):
         # cdef const_wchar_t *ptr = self.c_result.get[nanodbc.wide_string](i).c_str()
@@ -68,40 +89,42 @@ cdef class Cursor:
 
     def __cinit__(self):
         self.c_result = nanodbc.result()
+        self._arraysize = 1
+        self._timeout = 0
 
     def __init__(self, Connection connection not None):
         self._connection = connection
         self._datatype_get_map = {
-            SQLTypes.SQL_WLONGVARCHAR : self._chartype_to_py,
-            SQLTypes.SQL_LONGVARCHAR : self._chartype_to_py,
-            SQLTypes.SQL_CHAR : self._chartype_to_py,
-            SQLTypes.SQL_VARCHAR : self._chartype_to_py,
-            SQLTypes.SQL_NVARCHAR : self._chartype_to_py,
-            SQLTypes.SQL_WCHAR : self._chartype_to_py,
-            SQLTypes.SQL_WVARCHAR : self._chartype_to_py,
+            SQLTypes.SQL_WLONGVARCHAR : (self._chartype_to_py, STRING),
+            SQLTypes.SQL_LONGVARCHAR : (self._chartype_to_py, STRING),
+            SQLTypes.SQL_CHAR : (self._chartype_to_py, STRING),
+            SQLTypes.SQL_VARCHAR : (self._chartype_to_py, STRING),
+            SQLTypes.SQL_NVARCHAR : (self._chartype_to_py, STRING),
+            SQLTypes.SQL_WCHAR : (self._chartype_to_py, STRING),
+            SQLTypes.SQL_WVARCHAR : (self._chartype_to_py, STRING),
 
-            SQLTypes.SQL_DOUBLE : self._float_to_py,
-            SQLTypes.SQL_FLOAT : self._float_to_py,
-            SQLTypes.SQL_REAL : self._float_to_py,
+            SQLTypes.SQL_DOUBLE : (self._float_to_py,NUMBER),
+            SQLTypes.SQL_FLOAT : (self._float_to_py,NUMBER),
+            SQLTypes.SQL_REAL : (self._float_to_py,NUMBER),
 
-            SQLTypes.SQL_DECIMAL : self._numeric_to_py,
-            SQLTypes.SQL_NUMERIC : self._numeric_to_py,
+            SQLTypes.SQL_DECIMAL : (self._numeric_to_py,NUMBER),
+            SQLTypes.SQL_NUMERIC : (self._numeric_to_py,NUMBER),
 
-            SQLTypes.SQL_BIT : self._integral_to_py,
-            SQLTypes.SQL_TINYINT : self._integral_to_py,
-            SQLTypes.SQL_SMALLINT : self._integral_to_py,
-            SQLTypes.SQL_INTEGER : self._integral_to_py,
-            SQLTypes.SQL_BIGINT : self._integral_to_py,
+            SQLTypes.SQL_BIT : (self._integral_to_py, NUMBER),
+            SQLTypes.SQL_TINYINT : (self._integral_to_py, NUMBER),
+            SQLTypes.SQL_SMALLINT : (self._integral_to_py, NUMBER),
+            SQLTypes.SQL_INTEGER : (self._integral_to_py, NUMBER),
+            SQLTypes.SQL_BIGINT : (self._integral_to_py, NUMBER),
 
-            SQLTypes.SQL_DATE : self._datetime_to_py,
-            SQLTypes.SQL_TYPE_DATE : self._datetime_to_py,
+            SQLTypes.SQL_DATE : (self._datetime_to_py, DATETIME),
+            SQLTypes.SQL_TYPE_DATE : (self._datetime_to_py, DATETIME),
 
-            SQLTypes.SQL_TIMESTAMP : self._datetime_to_py,
-            SQLTypes.SQL_TYPE_TIMESTAMP : self._datetime_to_py,
+            SQLTypes.SQL_TIMESTAMP : (self._datetime_to_py, DATETIME),
+            SQLTypes.SQL_TYPE_TIMESTAMP : (self._datetime_to_py, DATETIME),
             #SQLTypes.SQL_SS_TIMESTAMPOFFSET : self._datetime_to_py,
 
-            SQLTypes.SQL_TIME : self._time_to_py,
-            SQLTypes.SQL_TYPE_TIME : self._time_to_py,
+            SQLTypes.SQL_TIME : (self._time_to_py,DATETIME),
+            SQLTypes.SQL_TYPE_TIME : (self._time_to_py,DATETIME),
             #SQLTypes.SQL_SS_TIME2 : self._time_to_py,
 
 
@@ -109,41 +132,64 @@ cdef class Cursor:
         }
         self.c_description = None
 
-    def execute(self, query, long batch_operations=1, long timeout=0):
-        cdef nanodbc.connection conn = self._connection.c_cnxn
-        self.c_result = nanodbc.execute(conn, query.encode(), batch_operations, timeout)
+    @property
+    def rowcount(self):
+        #return -1
+        return self.c_result.affected_rows() or -1
 
-    # @property
-    # def rowset_size(self):
-    #     return self.c_result.rowset_size()
+    @property
+    def has_affected_rows(self):
+        return self.c_result.has_affected_rows()
 
-    # @property
-    # def affected_rows(self):
-    #     return self.c_result.affected_rows()
+    
 
-    # @property
-    # def has_affected_rows(self):
-    #     return self.c_result.has_affected_rows()
+    def executemany(self, query, seq_of_parameters):
+        cdef nanodbc.statement  stmt = self._connection.c_stmt
+        cdef vector[string] values
+        cdef vector[char] nulls
 
-    # @property
-    # def rows(self):
-    #     return self.c_result.rows()
+        if not stmt.connected():
+            raise DatabaseError("Connection Disconnected.")
 
-    # @property
-    # def columns(self):
-    #     return self.c_result.columns()
+        stmt.close()
+        stmt.prepare(self._connection.c_cnxn, query.encode(), self.timeout)
 
-    # @property
-    # def first(self):
-    #     return self.c_result.first()
+        transpose = zip(*seq_of_parameters)
+        
+        for col, idx in zip(transpose, itertools.count()):
+            # values = vector[string](len(col))
+            print(idx, list(col))
 
-    # @property
-    # def last(self):
-    #     return self.c_result.last()
+            [values.push_back(str(i).encode()) for i in col]
 
-    # @property
-    # def next(self):
-    #     return self.c_result.next()
+            [nulls.push_back(True) if i is None else nulls.push_back(False) for i in col ]
+
+            stmt.bind_strings(idx, values, <bool_*>nulls.data(), nanodbc.param_direction.PARAM_IN)
+        try:
+            self.c_result = stmt.execute(max(1, len(seq_of_parameters)), self.timeout)
+            
+        except RuntimeError as e:
+            raise DatabaseError("Error in Executing") from e
+        
+
+    def execute(self, query, parameters=None):
+        if parameters is None:
+            parameters = []
+        self.executemany(query, [parameters])
+        # cdef nanodbc.statement  stmt = nanodbc.statement(self._connection.c_cnxn)
+        # stmt.prepare(query.encode(), self.timeout)
+        # self.c_result = stmt.execute(self.arraysize, self.timeout)
+
+        # cdef nanodbc.connection conn = self._connection.c_cnxn
+        # try:
+        #     self.c_result = nanodbc.execute(conn, query.encode(), self.arraysize, self.timeout)
+        # except RuntimeError as e:
+        #     raise DatabaseError("Error in Executing") from e
+
+
+
+
+   
 
     @property
     def description(self):
@@ -152,9 +198,9 @@ cdef class Cursor:
         
         if self.c_result:
             
-            for i in range(self.c_result.columns()):            
+            for i in range(self.c_result.columns()):
                 name = self.c_result.column_name(i).decode()
-                type_code = self.c_result.column_datatype(i)
+                type_code = self._datatype_get_map[self.c_result.column_datatype(i)][1] 
                 display_size = self.c_result.column_size(i)
                 internal_size = None
                 precision = self.c_result.column_decimal_digits(i)
@@ -184,18 +230,47 @@ cdef class Cursor:
         cdef short i
         Row = None
         _ = self.description # Initialise self.c_description
+        try:
+            while self.c_result.next():
+                if Row is None:
+                    
+                    Row = namedtuple(
+                        'Row',
+                        [self.c_result.column_name(i).decode() for i in range(self.c_result.columns())],
+                        rename=True)
+                row_values = []
+                for i in range(self.c_result.columns()):
+                    sql_datatype = self.c_result.column_datatype(i)
+                    # print("Datatype: %s", sql_datatype)
+                    if self.c_result.is_null(i):
+                        row_values.append(None)
+                    else:    
+                        row_values.append(self._datatype_get_map[sql_datatype][0](i))
+                yield Row(*row_values)
+        except RuntimeError as e:
+            raise DatabaseError from e
 
-        while self.c_result.next():
-            if Row is None:
-                
-                Row = namedtuple(
-                    'Row',
-                    [self.c_result.column_name(i).decode() for i in range(self.c_result.columns())],
-                    rename=True)
-            row_values = []
-            for i in range(self.c_result.columns()):
-                sql_datatype = self.c_result.column_datatype(i)
-                print("Datatype: %s", sql_datatype)
-                row_values.append(self._datatype_get_map[sql_datatype](i))
-            yield Row(*row_values)
+    def fetchall(self):
+        if self.c_result:
+            return [list(i) for i in self.rows()]
+        else:
+            raise DatabaseError("Message")
 
+    def fetchone(self):
+        if self.c_result:
+            try:
+                return list(next(self.rows()))
+            except StopIteration:
+                return
+            # return [list(i) for i in self.rows()]
+        else:
+            raise DatabaseError("Message")
+        
+    def fetchmany(self, size=None):
+        if size is None:
+            size = self.arraysize
+        if self.c_result:
+            
+            return [list(i) for i in itertools.islice(self.rows(), size)]
+        else:
+            raise DatabaseError("Message")

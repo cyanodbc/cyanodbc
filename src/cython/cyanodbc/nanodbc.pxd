@@ -1,13 +1,17 @@
+# distutils: language = c++
 from libcpp.string cimport string
+from libcpp.vector cimport vector
+from libcpp cimport bool as bool_
 from libc.stdint cimport int16_t, int32_t
 from cpython.ref cimport PyObject
 from libc.stddef cimport wchar_t
 from wstring cimport wstring
-
 ctypedef unsigned long ULong
 
 cdef extern from "Python.h":
     PyObject* PyUnicode_FromWideChar(wchar_t *w, Py_ssize_t size)
+
+
 
 
 cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
@@ -37,17 +41,18 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
     cdef cppclass result:
         result() except +
 
-        long rowset_size() const
-        long affected_rows() const
-        bint has_affected_rows() const
-        long rows() const
-        short columns() const
+        long rowset_size() except +
+        long affected_rows() except +
+        bint has_affected_rows() except +
+        long rows() except +
+        short columns() except +
 
         bint first()
         bint last()
-        bint next()
+        bint next() except +
+        bint is_null(short column) except +
 
-        T get[T](short column) const
+        T get[T](short column) except+
         short column(const string& column_name) const
         string column_name(short column) const
 
@@ -69,13 +74,17 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
         bint next_result()
         bint operator bool()
 
+    
+
+
     cdef cppclass connection:
 
-        connection() except +
-        # connection(const string&, long) except +
+        connection() except+
 
-        void connect(const string&, long) except +
+        void connect(const string&, long) except+
         void connect(const string&, const string&, const string& , long) except +
+
+        void disconnect() except+
 
         bint connected() const
         # size_t transactions() const
@@ -85,3 +94,52 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
         # string driver_name() const
         # string database_name() const
         # string catalog_name() const
+    cdef enum param_direction "nanodbc::statement::param_direction":
+        PARAM_IN "nanodbc::statement::param_direction::PARAM_IN"
+        PARAM_OUT "nanodbc::statement::param_direction::PARAM_OUT"
+        PARAM_INOUT "nanodbc::statement::param_direction::PARAM_INOUT"
+        PARAM_RETURN "nanodbc::statement::param_direction::PARAM_RETURN"
+
+    cdef cppclass statement:
+        statement() except+
+        statement(connection& conn) except+
+
+        void prepare(string& query, long timeout) except+
+        void prepare(connection& conn, string& query, long timeout) except+
+        void timeout(long timeout) except+
+
+        result execute(long batch_operations, long timeout) except+
+        unsigned long parameter_size(short param_index)
+        short parameters()
+        void reset_parameters()
+        void close()
+        bint connected()
+        
+        void bind[T](
+            short param_index,
+            T* values,
+            long batch_size,
+            bool_* nulls,
+            param_direction direction) except+
+
+        void bind_null(short param_index, long batch_size);
+
+        void bind_strings(
+            short param_index,
+            vector[string]& values,
+            param_direction direction) except +
+
+        void bind_strings(
+            short param_index,
+            vector[string]& values,
+            bool_* nulls,
+            param_direction direction) except +
+
+
+
+    cdef cppclass transaction:
+        transaction(connection& conn) except +
+        void commit() except+
+        void rollback() except+
+
+

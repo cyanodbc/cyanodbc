@@ -14,7 +14,8 @@
                 "cd \"${workspaceFolder}/build\" \n",
                 "LDFLAGS=\"-undefined dynamic_lookup\" cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 \"${workspaceFolder}\" \n",
                 "cmake --build \"${workspaceFolder}/build\" \n"
-            ]
+            ],
+            "problemMatcher": []
         },
         {
             "label": "clean",
@@ -31,8 +32,8 @@
                 "call \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\VsDevCmd.bat\" -vcvars_ver=14.0 -arch=amd64 -host_arch=amd64 &&",
                 "call activate py36 &",
                 "cd \"${workspaceFolder}\\build\" &",
-                "cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\"${env:USERPROFILE}\" ",
-                " -G Ninja \"${workspaceFolder}\" &&",                
+                "cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\"${env:USERPROFILE}\" -DCYANODBC_TARGET_PYTHON=3.6",
+                " -G Ninja \"${workspaceFolder}\" &&",
                 "cmake --build \"${workspaceFolder}\\build\""
             ],
             "problemMatcher": []
