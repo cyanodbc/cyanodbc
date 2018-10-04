@@ -46,12 +46,13 @@ cache:
 services:
   - mssql2014           # start SQL Server 2014 Express
   - mysql               # start MySQL 5.6 service
-  - postgresql          # start PostgreSQL 9.5 service
+  - postgresql104          # start PostgreSQL 9.5 service
   - iis                 # start IIS
 
 # scripts that run after cloning repository
 install:
-  - cmd: set PATH=%PATH%;C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts
+
+  - cmd: set PATH=%PATH%;C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts;C:\Program Files\PostgreSQL\10.4\bin
   - cmd: conda create -q -y -n py35 python=3.5
   - cmd: call activate py35
   - cmd: conda install -q -y cmake pytest cython ninja pytest-cov
