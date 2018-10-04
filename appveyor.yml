@@ -46,7 +46,7 @@ cache:
 services:
   - mssql2014           # start SQL Server 2014 Express
   - mysql               # start MySQL 5.6 service
-  - postgresql10          # start PostgreSQL 9.5 service
+  - postgresql101          # start PostgreSQL 9.5 service
   - iis                 # start IIS
 
 # scripts that run after cloning repository
@@ -62,7 +62,6 @@ install:
   - dir "C:\Program Files\PostgreSQL"
   - cmd: curl -fsS -o sqliteodbc_w64.exe http://www.ch-werner.de/sqliteodbc/sqliteodbc_w64.exe
   - cmd: sqliteodbc_w64.exe /S
-  - cmd: curl -fsS -o psqlodbc_10_03_0000-x64.zip https://ftp.postgresql.org/pub/odbc/versions/msi/psqlodbc_10_03_0000-x64.zip
   - cmd: 7z.exe x psqlodbc_10_03_0000-x64.zip
   - cmd: msiexec /i psqlodbc_x64.msi /qn /norestart
   - cmd: git clone https://github.com/nanodbc/nanodbc.git c:\projects\nanodbc
