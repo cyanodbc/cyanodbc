@@ -59,9 +59,12 @@ install:
   - cmd: python -m pip install --upgrade pip
   #- cmd: conda install -q -y -c conda-forge codecov
   - cmd: call deactivate
-  - dir "C:\Program Files\PostgreSQL"
+  - ps: get-wmiobject Win32_Product | Format-Table IdentifyingNumber, Name, LocalPackage -AutoSize
   - cmd: curl -fsS -o sqliteodbc_w64.exe http://www.ch-werner.de/sqliteodbc/sqliteodbc_w64.exe
   - cmd: sqliteodbc_w64.exe /S
+  - cmd: curl -fsS -o psqlodbc_10_03_0000-x64.zip https://ftp.postgresql.org/pub/odbc/versions/msi/psqlodbc_10_03_0000-x64.zip
+  - cmd: 7z.exe x psqlodbc_10_03_0000-x64.zip
+  - cmd: msiexec /i psqlodbc_x64.msi /qn /norestart
   - cmd: git clone https://github.com/nanodbc/nanodbc.git c:\projects\nanodbc
   
   
