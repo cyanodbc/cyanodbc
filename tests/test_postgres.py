@@ -57,6 +57,4 @@ class TestPostgres(base_case.BaseCase):
         cnxn = self.driver.connect(
                 "Driver={PostgreSQL Unicode(x64)};Server=localhost;Port=5432;Uid=postgres;Pwd=Password12!;"
                 )
-        cur = cnxn.cursor()
-
-        cur.execute("""DROP DATABASE IF EXISTS test""")
+        cnxn.close()

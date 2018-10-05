@@ -24,7 +24,7 @@ class BaseCase():
         self.tearDown()
 
     @pytest.fixture
-    def connection(self, db):
+    def connection_factory(self, db):
         def cnxn():
             return self.driver.connect(
                 *self.connect_args,**self.connect_kw_args
@@ -34,15 +34,16 @@ class BaseCase():
 
 
         
-    def test_connect(self, connection):
-        con = connection()
+    def test_connect(self, connection_factory):
+        con = connection_factory()
         con.close()
     
-    def test_ddl1(self, connection):
-        cnxn = connection()
+    def test_ddl1(self, connection_factory):
+        cnxn = connection_factory()
         cur = cnxn.cursor()
-        con.execute(self.ddl1)
-        con.execute(self.ddl2)
+        cur.execute(self.ddl1)
+        cur.execute(self.ddl2)
+
 
     def test_type_STRING(self):
         pass
