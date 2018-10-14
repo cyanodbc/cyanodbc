@@ -12,8 +12,10 @@
                 "rm -rf \"${workspaceFolder}/build\" \n",
                 "mkdir \"${workspaceFolder}/build\" \n",
                 "cd \"${workspaceFolder}/build\" \n",
-                "LDFLAGS=\"-undefined dynamic_lookup\" cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 \"${workspaceFolder}\" \n",
-                "cmake --build \"${workspaceFolder}/build\" \n"
+                "LDFLAGS=\"-undefined dynamic_lookup\" cmake -G Ninja -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=ON \"${workspaceFolder}\" \n",
+                "VERBOSE=1 cmake --build \"${workspaceFolder}/build\" \n",
+                "cd \"${workspaceFolder}/build/src/cython\" \n",
+                "python \"${workspaceFolder}/build/src/cython/setup.py\" bdist_wheel \n"
             ],
             "problemMatcher": []
         },
@@ -32,9 +34,11 @@
                 "call \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\VsDevCmd.bat\" -vcvars_ver=14.0 -arch=amd64 -host_arch=amd64 &&",
                 "call activate py36 &",
                 "cd \"${workspaceFolder}\\build\" &",
-                "cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\"${env:USERPROFILE}\" -DCYANODBC_TARGET_PYTHON=3.6",
+                "cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\"${env:USERPROFILE}\" -DCYANODBC_TARGET_PYTHON=3.6 -DCYANODBC_ENABLE_COVERAGE=ON",
                 " -G Ninja \"${workspaceFolder}\" &&",
-                "cmake --build \"${workspaceFolder}\\build\""
+                "cmake --build \"${workspaceFolder}\\build\" &&",
+                "cd \"${workspaceFolder}\\build\\src\\cython\" &&",
+                "python \"${workspaceFolder}\\build\\src\\cython\\setup.py\" bdist_wheel "
             ],
             "problemMatcher": []
         }

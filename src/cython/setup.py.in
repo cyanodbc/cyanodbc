@@ -1,0 +1,8 @@
+from setuptools import setup, find_packages
+import os
+setup(name='${PROJECT_NAME}',
+      version='${CYANODBC_VERSION}',
+      package_dir={ '': "." },
+      package_data={'':['*.so', "*.pxd", "*.pyd"]},
+      include_package_data=True,
+      packages=find_packages())

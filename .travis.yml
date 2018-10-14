@@ -1,5 +1,6 @@
 language: minimal
 os: osx
+osx_image: xcode10
 before_install:
   - brew bundle
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
@@ -7,25 +8,29 @@ before_install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda create -q -y -n py35 python=3.5
   - source $HOME/miniconda/bin/activate py35
-  - conda install -q -y cmake pytest cython ninja
+  - python -m pip install --upgrade pip
+  - conda install -q -y cmake pytest cython ninja pytest-cov
+  - conda install -q -y -c conda-forge codecov
   - brew services run postgresql
 
 install:
   - git clone https://github.com/nanodbc/nanodbc.git $HOME/nanodbc
   - mkdir $HOME/nanodbc/build
   - cd $HOME/nanodbc/build
-  - cmake -G Ninja -DNANODBC_ENABLE_BOOST=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME -DNANODBC_DISABLE_TESTS=ON ..
+  - CC=/usr/local/opt/llvm/bin/clang CXX=/usr/local/opt/llvm/bin/clang++ cmake -G Ninja -DNANODBC_ENABLE_BOOST=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME -DNANODBC_DISABLE_TESTS=ON ..
   - cmake --build . --target install
 
 script:
   - cd $TRAVIS_BUILD_DIR
   - mkdir build
   - cd build
-  - LDFLAGS="-undefined dynamic_lookup" cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 ..
+  - CC=/usr/local/opt/llvm/bin/clang CXX=/usr/local/opt/llvm/bin/clang++ LDFLAGS="-undefined dynamic_lookup" cmake -G Ninja -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=OFF ..
   - cmake --build .
-  - pip install src/python/dist/Cyanodbc-0.0.1-py3-none-any.whl
+  - cd $TRAVIS_BUILD_DIR/build/src/cython
+  - python setup.py bdist_wheel
+  - pip install $TRAVIS_BUILD_DIR/build/src/cython/dist/Cyanodbc-0.0.1-py3-none-any.whl
   - cp $TRAVIS_BUILD_DIR/ci/.odbcinst.ini ~/
-  - pytest $TRAVIS_BUILD_DIR/tests
+  - pytest --cov=cyanodbc $TRAVIS_BUILD_DIR/tests
 
 
 

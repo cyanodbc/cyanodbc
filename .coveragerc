@@ -1,0 +1,5 @@
+[run]
+plugins = cyanodbc.coverage.Coverage
+debug=plugin,sys
+source = cyanodbc
+

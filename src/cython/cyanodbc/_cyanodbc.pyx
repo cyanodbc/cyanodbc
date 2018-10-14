@@ -1,6 +1,6 @@
 # distutils: language = c++
 
-cimport nanodbc
+cimport cyanodbc.nanodbc as nanodbc
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp cimport bool as bool_
@@ -17,7 +17,7 @@ from cython.operator cimport dereference as deref
 
 
 from libc.stddef cimport wchar_t
-from wstring cimport const_wchar_t
+from .wstring cimport const_wchar_t
 from collections import namedtuple
 import itertools
 import decimal

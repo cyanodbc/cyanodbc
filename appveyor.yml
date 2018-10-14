@@ -51,11 +51,12 @@ services:
 
 # scripts that run after cloning repository
 install:
-
   - cmd: set PATH=%PATH%;C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts
   - cmd: conda create -q -y -n py35 python=3.5
   - cmd: call activate py35
-  - cmd: conda install -q -y cmake pytest cython ninja 
+  - cmd: conda install -q -y cmake pytest cython ninja pytest-cov
+  - cmd: python -m pip install --upgrade pip
+  #- cmd: conda install -q -y -c conda-forge codecov
   - cmd: call deactivate
   - cmd: curl -fsS -o sqliteodbc_w64.exe http://www.ch-werner.de/sqliteodbc/sqliteodbc_w64.exe
   - cmd: sqliteodbc_w64.exe /S
@@ -79,6 +80,9 @@ install:
 
 # scripts to run before build
 before_build:
+  - cmd: choco install -y codecov
+  - cmd: refreshenv
+  - cmd: set PATH=%PATH%;C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts
   - cmd: cd c:\projects\nanodbc
   - cmd: mkdir build
   - cmd: cd build
@@ -92,12 +96,20 @@ before_build:
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
+# Build Coverage Enabled version of Cyanodbc
   - cmd: cd c:\projects\myproject
   - cmd: mkdir build
   - cmd: cd build
-  - cmd: python -c "import sys, struct; sys.stdout.write(str(struct.calcsize(\"P\")))"
-  - cmd: cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 ..
+  - cmd: cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=ON ..
   - cmd: cmake --build .
+# Build Production Version
+  - cmd: cd c:\projects\myproject
+  - cmd: mkdir buildprod
+  - cmd: cd buildprod
+  - cmd: cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=OFF ..
+  - cmd: cmake --build .
+  - cmd: cd src\cython
+  - cmd: python setup.py bdist_wheel 
   
 
 
@@ -116,18 +128,28 @@ before_package:
 
 # scripts to run before tests (working directory and environment changes are persisted from the previous steps such as "before_build")
 before_test:
-  - ps: |
-      $cmd = "pip install " + (get-item src\python\dist\Cyanodbc*.whl).FullName
-      iex "& $cmd"
+
+  - cd C:\projects\myproject
+  
+
 #  - pip install C:\projects\myproject\build\src\python\dist\Cyanodbc-0.0.1-py3-none-any.whl
 
 
 # to run your custom scripts instead of automatic tests
 test_script:
-  - pytest C:\projects\myproject\tests
+# Generate coverage.xml
+  - pip install -e c:\projects\myproject\build\src\cython
+  - pytest --cov=cyanodbc tests --cov-report=xml
+  - pip uninstall -y cyanodbc
+# Verify that the built production pacakge works
+  - ps: |
+      $cmd = "pip install " + (get-item C:\projects\myproject\buildprod\src\cython\dist\Cyanodbc*.whl).FullName
+      iex "& $cmd"
 
 # scripts to run after tests
 after_test:
+  - codecov -f coverage.xml
+
 
 # to disable automatic tests
 #test: off
@@ -140,7 +162,7 @@ after_test:
 artifacts:
 
   # pushing a single file
-  - path: build\src\python\dist\*.whl
+  - path: buildprod\src\cython\dist\*.whl
 
 
 

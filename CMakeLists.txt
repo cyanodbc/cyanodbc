@@ -8,10 +8,12 @@ project(Cyanodbc CXX)
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
 # cyanodbc specific options
 
-option(CYANODBC_DISABLE_INSTALL "Do not generate install target" OFF)
-option(CYANODBC_DISABLE_TESTS "Do not build tests" OFF)
-option(CYANODBC_ENABLE_COVERAGE "Enable test coverage reporting for GCC/clang" OFF)
-option(CYANODBC_TARGET_PYTHON "Target Python Version to build against" "3.7")
+
+
+option(CYANODBC_TARGET_PYTHON "Target Python Version to build against(Default: 3.7)" "3.7")
+option(CYANODBC_ENABLE_COVERAGE "Enable Coverage reporting(Default: off)" OFF)
+
+
 ########################################
 ## cyanodbc version
 ########################################
@@ -33,11 +35,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
   include(CheckCXXCompilerFlag)
 
-  if (CYANODBC_ENABLE_COVERAGE)
-    add_compile_options(--coverage -O0)
-    link_libraries(gcov)
-    message(STATUS "cyanodbc build: Enable test coverage - Yes")
-  endif()
+  # if (CYANODBC_ENABLE_COVERAGE)
+  #   add_compile_options(--coverage -O0)
+  #   link_libraries(gcov)
+  #   message(STATUS "cyanodbc build: Enable test coverage - Yes")
+  # endif()
 
   if(NOT CYANODBC_DISABLE_LIBCXX)
     check_cxx_compiler_flag("-stdlib=libc++" CXX_SUPPORTS_STDLIB)
@@ -71,5 +73,5 @@ endif()
 ## build cyanodbc extension
 ########################################
 add_subdirectory(src/cython)
-add_subdirectory(src/python)
+
 

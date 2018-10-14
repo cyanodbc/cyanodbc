@@ -5,7 +5,7 @@ from libcpp cimport bool as bool_
 from libc.stdint cimport int16_t, int32_t
 from cpython.ref cimport PyObject
 from libc.stddef cimport wchar_t
-from wstring cimport wstring
+from .wstring cimport wstring
 ctypedef unsigned long ULong
 
 cdef extern from "Python.h":

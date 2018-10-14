@@ -1,53 +1,99 @@
 # cyanodbc
-A Cython Wrapper for Nanodbc
+A Cython Wrapper for Nanodbc  which dubs itself as a "A small C++ wrapper for the native C ODBC API".
 
-## Testing
-1. Start up a SQL Server docker image to test SQL functionality.
-Instructions can be found at: https://docs.microsoft.com/en-us/sql/linux/quickstart-install-connect-docker?view=sql-server-2017
 
-The main command is 
-```
-docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Passw0rd"    -p 1433:1433 --name sql1    -d microsoft/mssql-server-linux:2017-latest
-```
-To build Debug python with valgrind:
-```
-CC=/usr/local/opt/llvm/bin/clang CXX=/usr/local/opt/llvm/bin/clang++ ../configure --with-pydebug --without-pymalloc --with-valgrind --prefix=$HOME/cpython-custom CFLAGS=-I$(brew --prefix)/opt/openssl/include LDFLAGS=-L$(brew --prefix)/opt/openssl/lib
-make install VERBOSE=1
-```
+## Build Status
 
-To install nanodbc on OSX():
+| Branch |  Linux/OSX | Windows|Coverage|
+|:--- |:--- |:---|:--|
+| `master`  | [![master][travis-badge-master]][travis] | [![master][appveyor-badge-master]][appveyor] |[![master][coverage-badge-master]][coverage] |
+ 
+## Building
+To build Cyanodbc, you'll need CMake, Ninja, Cython, and Python. Additionally to run tests you will need pytest. The good news is all of these are available on [PyPi](https://pypi.org), so they are just a pip install away. 
+
+```{sh}
+pip install requirements.txt
+
 ```
+### Build Nanodbc
+
+The first step is to build and install Nanodbc.
+
+On Unix-like or OSX systems try:
+
+```{sh}
+git clone https://github.com/nanodbc/nanodbc.git
 cd nanodbc
 mkdir build
 cd build
-CC=/usr/local/opt/llvm/bin/clang CXX=/usr/local/opt/llvm/bin/clang++ cmake -DNANODBC_ENABLE_BOOST=ON  -DCMAKE_INSTALL_PREFIX=$HOME -DCMAKE_BUILD_TYPE=Debug ..
-
-make install VERBOSE=1
+cmake -G Ninja -DNANODBC_ENABLE_BOOST=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME -DNANODBC_DISABLE_TESTS=ON ..
+cmake --build . --target install
 ```
 
-To build cyanodbc on OSX:
-```
-CC=/usr/local/opt/llvm/bin/clang CXX=/usr/local/opt/llvm/bin/clang++  LDFLAGS="-undefined dynamic_lookup" cmake -DCMAKE_BUILD_TYPE=Debug    -DCMAKE_INSTALL_PREFIX=$HOME -DCMAKE_PREFIX_PATH=$HOME/cpython-custom ..
+On windows you might try:
 
-export PYTHONPATH=/Users/dash/repos/cyanodbc/build/src/python
-export PATH=/Users/dash/Downloads/cpython-3.5/valgrind-exe/usr/local/bin:$PATH
+```{cmd}
+git clone https://github.com/nanodbc/nanodbc.git
+cd nanodbc
+mkdir build
+cd build
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE% -DNANODBC_DISABLE_TESTS=ON ..
+cmake --build . --target install
 
-```
-
-
-Testing with valgrind
-```
-valgrind --tool=memcheck --dsymutil=yes --track-origins=yes --show-leak-kinds=all --trace-children=yes --suppressions=$HOME/valgrind-python.supp $HOME/cpython-custom/bin/python3.5 -X showrefcount
 ```
 
 
-https://stackoverflow.com/questions/48289858/fatal-error-in-extension-pythreadstate-get-no-current-thread-when-using-swig-w
+(Note: Please check the [Nanodbc Project](https://github.com/nanodbc/nanodbc) to know more about the cmake options used)
+
+### Building Cyanodbc
+
+Now to the interesting part- building cyanodbc. 
+
+On Unix-like or OSX
+```{sh}
+git clone https://github.com/rdhushyanth/cyanodbc.git
+cd cyanodbc
+mkdir build
+cd build
+
+LDFLAGS="-undefined dynamic_lookup" cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 ..
 
 
-https://superuser.com/questions/289344/is-there-something-like-command-substitution-in-windows-cli
+```
 
-https://stackoverflow.com/questions/24174394/cmake-is-not-able-to-find-python-libraries
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set_property (TARGET cyanodbc PROPERTY SUFFIX ".so")
-endif()
+On Windows, make sure you have Visual Studio 2015(or VS 2017 with 2015 C++) installed.
+
+```{cmd}
+call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64
+
+git clone https://github.com/rdhushyanth/cyanodbc.git
+cd cyanodbc
+mkdir build
+cd build
+
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 ..
+
+```
+
+Note: Make sure the CYANODBC_TARGET_PYTHON is set to the corresponding python version you are using - this works around certain quirks of CMake python identification
+
+## Testing
+Pytest is used for running the tests. 
+
+simply run 
+
+```
+cd cyanodbc
+pytest tests
+```
+
+
+[travis]:https://travis-ci.org/rdhushyanth/cyanodbc
+[travis-badge-master]:  https://travis-ci.org/rdhushyanth/cyanodbc.svg?branch=master
+
+[appveyor]:         https://ci.appveyor.com/project/rdhushyanth/cyanodbc?branch=master
+[appveyor-badge-master]:   https://img.shields.io/appveyor/ci/rdhushyanth/cyanodbc/master.svg
+
+[coverage]: https://codecov.io/gh/rdhushyanth/cyanodbc/branch/master
+[coverage-badge-master]: https://codecov.io/gh/rdhushyanth/cyanodbc/branch/master/graph/badge.svg
