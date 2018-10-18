@@ -12,6 +12,8 @@ before_install:
   - conda install -q -y cmake pytest cython ninja pytest-cov
   - conda install -q -y -c conda-forge codecov
   - brew services run postgresql
+  - psql -c "CREATE USER postgres WITH PASSWORD 'Password12!';"
+
 
 install:
   - git clone https://github.com/nanodbc/nanodbc.git $HOME/nanodbc
