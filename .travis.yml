@@ -18,7 +18,7 @@ before_install:
   - set +H
   - psql --help
 
-  - cat /usr/local/var/postgres/server.log
+  - cat /usr/local/var/log/postgres.log
   - psql -c "create USER postgres WITH LOGIN PASSWORD 'Password12!';"  -U travis
 
 
