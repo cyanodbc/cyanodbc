@@ -15,6 +15,7 @@ before_install:
   - brew services run postgresql
   - set +H
   - psql --help
+  - cat /usr/local/var/postgres/server.log
   - psql -c "create USER postgres WITH LOGIN PASSWORD 'Password12!';"  -U travis
 
 
