@@ -13,7 +13,8 @@ before_install:
   - conda install -q -y -c conda-forge codecov
   - brew services run postgresql
   - set +H
-  - psql -c "CREATE USER postgres WITH PASSWORD 'Password12!';" postgres
+  - psql --help
+  - psql -c "CREATE USER postgres WITH PASSWORD 'Password12!';"
 
 
 install:
