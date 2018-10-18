@@ -2,9 +2,6 @@ language: minimal
 os: osx
 osx_image: xcode10
 
-services:
-  - postgresql
-
 before_install:
   - brew bundle
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
@@ -15,10 +12,10 @@ before_install:
   - python -m pip install --upgrade pip
   - conda install -q -y cmake pytest cython ninja pytest-cov
   - conda install -q -y -c conda-forge codecov
-  # - brew services run postgresql
+  - brew services run postgresql
   - set +H
   - psql --help
-  - psql -c "alter USER postgres WITH PASSWORD 'Password12!';"  -U postgres
+  - psql -c "create USER postgres WITH LOGIN PASSWORD 'Password12!';"  -U travis
 
 
 install:
