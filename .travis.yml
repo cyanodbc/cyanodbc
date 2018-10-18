@@ -12,9 +12,12 @@ before_install:
   - python -m pip install --upgrade pip
   - conda install -q -y cmake pytest cython ninja pytest-cov
   - conda install -q -y -c conda-forge codecov
+  - ps auxw | grep post
   - brew services run postgresql
+  - ps auxw | grep post
   - set +H
   - psql --help
+
   - cat /usr/local/var/postgres/server.log
   - psql -c "create USER postgres WITH LOGIN PASSWORD 'Password12!';"  -U travis
 
