@@ -4,6 +4,16 @@ osx_image: xcode10
 
 before_install:
   - brew bundle
+  - ps auxw | grep post
+  - brew services run postgresql
+  - ps auxw | grep post
+  - set +H
+  - psql --help
+  - cat /usr/local/var/log/postgres.log
+  - psql -l
+  - psql -c "\du" -U postgres
+  - psql -c "create USER postgres WITH LOGIN PASSWORD 'Password12!';" -U postgres
+
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
   - bash ~/miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
@@ -12,14 +22,7 @@ before_install:
   - python -m pip install --upgrade pip
   - conda install -q -y cmake pytest cython ninja pytest-cov
   - conda install -q -y -c conda-forge codecov
-  - ps auxw | grep post
-  - brew services run postgresql
-  - ps auxw | grep post
-  - set +H
-  - psql --help
 
-  - cat /usr/local/var/log/postgres.log
-  - psql -c "create USER postgres WITH LOGIN PASSWORD 'Password12!';" -U postgres
 
 
 install:
