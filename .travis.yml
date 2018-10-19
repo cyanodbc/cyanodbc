@@ -6,12 +6,10 @@ before_install:
   - brew bundle
   - ps auxw | grep post
   - brew services run postgresql
-  - ps auxw | grep post
   - set +H
-  - psql --help
+
   - cat /usr/local/var/log/postgres.log
-  - psql -l
-  - psql -c "\du" postgres
+
   - psql -c "create USER postgres WITH LOGIN PASSWORD 'Password12!';ALTER USER postgres WITH SUPERUSER;" postgres
 
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
