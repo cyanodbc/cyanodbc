@@ -11,8 +11,8 @@ before_install:
   - psql --help
   - cat /usr/local/var/log/postgres.log
   - psql -l
-  - psql -c "\du" -U postgres
-  - psql -c "create USER postgres WITH LOGIN PASSWORD 'Password12!';" -U postgres
+  - psql -c "\du" postgres
+  - psql -c "create USER postgres WITH LOGIN PASSWORD 'Password12!';" postgres
 
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
   - bash ~/miniconda.sh -b -p $HOME/miniconda
