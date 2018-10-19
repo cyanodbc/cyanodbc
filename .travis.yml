@@ -7,6 +7,7 @@ before_install:
   - ps auxw | grep post
   - brew services run postgresql
   - set +H
+  - chmod a+x ./ci/wait-for-postgres.sh
   - ./ci/wait-for-postgres.sh
   - psql -c "create USER postgres WITH LOGIN PASSWORD 'Password12!';ALTER USER postgres WITH SUPERUSER;" postgres
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
