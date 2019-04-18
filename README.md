@@ -96,4 +96,4 @@ pytest tests
 [appveyor-badge-master]:   https://img.shields.io/appveyor/ci/rdhushyanth/cyanodbc/master.svg
 
 [coverage]: https://codecov.io/gh/rdhushyanth/cyanodbc/branch/master
-[coverage-badge-master]: https://codecov.io/gh/rdhushyanth/cyanodbc/branch/master/graph/badge.svg
+[coverage-badge-master]: #
