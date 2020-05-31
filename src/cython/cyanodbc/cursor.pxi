@@ -54,6 +54,10 @@ cdef class Cursor:
     def setoutputsize(size, column=0):
         return
 
+    def _binary_to_py(self, short i):
+        cdef vector[nanodbc.uint8_t] c_res = self.c_result.get[vector[nanodbc.uint8_t]](i)
+        cdef nanodbc.charP c_res_char = nanodbc.reinterpret_cast[nanodbc.charP](c_res.data())
+        return <object>nanodbc.PyBytes_FromStringAndSize(c_res_char, c_res.size())
 
     def _chartype_to_py(self, short i):
         # cdef const_wchar_t *ptr = self.c_result.get[nanodbc.wide_string](i).c_str()
@@ -128,6 +132,10 @@ cdef class Cursor:
             SQLTypes.SQL_TYPE_TIME : (self._time_to_py,DATETIME),
             #SQLTypes.SQL_SS_TIME2 : self._time_to_py,
 
+            SQLTypes.SQL_SS_UDT : (self._binary_to_py, BINARY),
+            SQLTypes.SQL_BINARY : (self._binary_to_py, BINARY),
+            SQLTypes.SQL_VARBINARY : (self._binary_to_py, BINARY),
+            SQLTypes.SQL_LONGVARBINARY : (self._binary_to_py, BINARY)
 
 
         }
