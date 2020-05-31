@@ -102,6 +102,7 @@ cdef class Cursor:
             SQLTypes.SQL_NVARCHAR : (self._chartype_to_py, STRING),
             SQLTypes.SQL_WCHAR : (self._chartype_to_py, STRING),
             SQLTypes.SQL_WVARCHAR : (self._chartype_to_py, STRING),
+            SQLTypes.SQL_GUID : (self._chartype_to_py, STRING),
 
             SQLTypes.SQL_DOUBLE : (self._float_to_py,NUMBER),
             SQLTypes.SQL_FLOAT : (self._float_to_py,NUMBER),
