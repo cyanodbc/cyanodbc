@@ -11,10 +11,13 @@ cdef class Connection:
         self.c_trxn_ptr.reset(new nanodbc.transaction(self.c_cnxn))
 
     def _connect(self, dsn, username=None, password=None, long timeout=0):
-        if username and password:
-            self.c_cnxn.connect(dsn.encode(),username.encode(), password.encode(), timeout)
-        else:
-            self.c_cnxn.connect(dsn.encode(), timeout)
+        try:
+            if username and password:
+                self.c_cnxn.connect(dsn.encode(),username.encode(), password.encode(), timeout)
+            else:
+                self.c_cnxn.connect(dsn.encode(), timeout)
+        except RuntimeError as e:
+            raise ConnectError(str(e)) from e
 
     def find_tables(self, catalog, schema, table, type):
         """
@@ -170,6 +173,12 @@ cdef class Connection:
     def cursor(self):
         return Cursor(self)
 
+    def connected(self):
+        """
+        Check to see if the underlying connection object reports as being
+        connected.
+        """
+        return self.c_cnxn.connected()
     def close(self):
         #try:
             if self.c_cnxn.connected():
@@ -180,6 +189,14 @@ cdef class Connection:
             #log(traceback.format_exc(e), logging.WARNING)
              
             
+    def execute(self, query, parameters=None):
+        """
+        This method is equivalent to obtaining a cursor and calling its
+        execute method.  Returns the cursor.
+        """
+        crsr = self.cursor()
+        crsr.execute(query, parameters)
+        return crsr
 
     # @property
     # def transactions(self):
@@ -188,23 +205,37 @@ cdef class Connection:
 
     @property
     def dbms_name(self):
+        """
+        Retrieve the name of the DBMS product accessed by the driver.  Thin
+        wrapper around a call to the ODBC SQLGetInfo endpoint, with an
+        argument SQL_DBMS_NAME.  See:
+        https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlgetinfo-function?view=sql-server-ver15
+        """
         return self.c_cnxn.dbms_name().decode('UTF-8')
     
-    # @property
-    # def dbms_version(self):
-    #     return self.c_cnxn.dbms_version().decode('UTF-8')
+    @property
+    def dbms_version(self):
+        """
+        Retrieve the version of the DBMS product accessed by the driver.  Thin
+        wrapper around a call to the ODBC SQLGetInfo endpoint, with an
+        argument SQL_DBMS_VER.  See:
+        https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlgetinfo-function?view=sql-server-ver15
+        """
+        return self.c_cnxn.dbms_version().decode('UTF-8')
 
     # @property
     # def driver_name(self):
     #     return self.c_cnxn.driver_name().decode('UTF-8')
 
-    # @property
-    # def database_name(self):
-    #     return self.c_cnxn.database_name().decode('UTF-8')
-
-    # @property
-    # def catalog_name(self):
-    #     return self.c_cnxn.catalog_name().decode('UTF-8')
+    @property
+    def catalog_name(self):
+        """
+        Retrieve the catalog we are currently attached to.  Thin wrapper
+        around a call to the ODBC SQLGetConnectAttr endpoint, with an argument
+        SQL_ATTR_CURRENT_CATALOG.  See:
+        https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlgetconnectattr-function?view=sql-server-ver15
+        """
+        return self.c_cnxn.catalog_name().decode('UTF-8')
 
 def connect(dsn, username=None, password=None, long timeout=0):
     cnxn = Connection()

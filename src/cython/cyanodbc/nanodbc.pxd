@@ -137,10 +137,10 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
         # size_t transactions() const
         T get_info[T](short info_type) const
         string dbms_name() const
-        # string dbms_version() const
+        string dbms_version() const
         # string driver_name() const
-        # string database_name() const
-        # string catalog_name() const
+        string database_name() const
+        string catalog_name() const
     cdef enum param_direction "nanodbc::statement::param_direction":
         PARAM_IN "nanodbc::statement::param_direction::PARAM_IN"
         PARAM_OUT "nanodbc::statement::param_direction::PARAM_OUT"

@@ -48,6 +48,9 @@ class Warning(Exception):
 class InterfaceError(Error):
     pass
 
+class ConnectError(Error):
+    pass
+
 class DatabaseError(Error):
     pass
 
