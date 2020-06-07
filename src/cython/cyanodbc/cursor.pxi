@@ -84,7 +84,7 @@ cdef class Cursor:
         # Maybe if Time component is Zero return Date, else Datetime? - But what about TZ?
         return cpython.datetime.datetime_new(c_timestamp.year,c_timestamp.month,
             c_timestamp.day, c_timestamp.hour, c_timestamp.min,
-            c_timestamp.sec, c_timestamp.fract, None)
+            c_timestamp.sec, <int>(c_timestamp.fract/1E3), None)
 
     def _time_to_py(self, short i):
         cdef nanodbc.time c_time
