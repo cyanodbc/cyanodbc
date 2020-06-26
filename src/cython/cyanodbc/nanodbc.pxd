@@ -117,7 +117,7 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
         unsigned long parameter_size(short param_index)
         short parameters()
         void reset_parameters()
-        void close()
+        void close() except+
         bint connected()
         
         void bind[T](

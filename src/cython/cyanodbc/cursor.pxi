@@ -155,17 +155,18 @@ cdef class Cursor:
     
 
     def executemany(self, query, seq_of_parameters):
-        if not self._connection.connected():
-            raise DatabaseError("Connection Disconnected.")
-
-        self.close()
-        self.c_stmt_ptr.reset(new nanodbc.statement(self._connection.c_cnxn))
-
         cdef vector[string] values
         cdef vector[char] nulls
 
+        if not self._connection.connected():
+            raise DatabaseError("Connection Disconnected.")
 
-        deref(self.c_stmt_ptr).prepare(query.encode(), self.timeout)
+        try:
+            self.close()
+            self.c_stmt_ptr.reset(new nanodbc.statement(self._connection.c_cnxn))
+            deref(self.c_stmt_ptr).prepare(query.encode(), self.timeout)
+        except RuntimeError as e:
+            raise DatabaseError("Error in Preparing: " + str(e)) from e
 
         transpose = zip(*seq_of_parameters)
         
