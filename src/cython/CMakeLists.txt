@@ -13,7 +13,7 @@ list(TRANSFORM PYX_FILES REPLACE "\\.pyx\$" ".cpp"
     OUTPUT_VARIABLE CPP_FILES)
 
 find_program(CYTHON cython)
-
+find_package(ODBC REQUIRED)
 
 message("Pyx files: ${PYX_FILES}, Cpp files: ${CPP_FILES}")
 
@@ -36,25 +36,21 @@ else()
 endif()
 
 
-find_package(nanodbc REQUIRED)
-
 # Include Interpreter component to ensure libraries/includes are compatible
 find_package (Python3 ${CYANODBC_TARGET_PYTHON} EXACT REQUIRED COMPONENTS Interpreter  Development)
 
 add_library(_cyanodbc SHARED
-    ${CPP_FILES})
+    ${CPP_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/nanodbc/nanodbc/nanodbc.cpp)
 
-target_include_directories(_cyanodbc PRIVATE ${Python3_INCLUDE_DIRS})
+target_include_directories(_cyanodbc PRIVATE ${Python3_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/nanodbc)
 
 
 set_property (TARGET _cyanodbc PROPERTY PREFIX "")
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    target_link_libraries(_cyanodbc nanodbc Python3::Python)
+    target_link_libraries(_cyanodbc ODBC::ODBC Python3::Python)
     set_property (TARGET _cyanodbc PROPERTY SUFFIX ".pyd")
-endif()
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    target_link_libraries(_cyanodbc nanodbc)
+else()
+    target_link_libraries(_cyanodbc ODBC::ODBC)
     set_property (TARGET _cyanodbc PROPERTY SUFFIX ".so")
 endif()
 
