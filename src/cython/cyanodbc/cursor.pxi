@@ -99,44 +99,43 @@ cdef class Cursor:
     def __init__(self, Connection connection not None):
         self._connection = connection
         self._datatype_get_map = {
-            SQLTypes.SQL_WLONGVARCHAR : (self._chartype_to_py, STRING),
-            SQLTypes.SQL_LONGVARCHAR : (self._chartype_to_py, STRING),
-            SQLTypes.SQL_CHAR : (self._chartype_to_py, STRING),
-            SQLTypes.SQL_VARCHAR : (self._chartype_to_py, STRING),
-            SQLTypes.SQL_NVARCHAR : (self._chartype_to_py, STRING),
-            SQLTypes.SQL_WCHAR : (self._chartype_to_py, STRING),
-            SQLTypes.SQL_WVARCHAR : (self._chartype_to_py, STRING),
-            SQLTypes.SQL_GUID : (self._chartype_to_py, STRING),
-            SQLTypes.SQL_SS_XML : (self._chartype_to_py, STRING),
+            _SQL_WLONGVARCHAR : (self._chartype_to_py, STRING),
+            _SQL_LONGVARCHAR : (self._chartype_to_py, STRING),
+            _SQL_CHAR : (self._chartype_to_py, STRING),
+            _SQL_VARCHAR : (self._chartype_to_py, STRING),
+            _SQL_WCHAR : (self._chartype_to_py, STRING),
+            _SQL_WVARCHAR : (self._chartype_to_py, STRING),
+            _SQL_GUID : (self._chartype_to_py, STRING),
+            _SQL_SS_XML : (self._chartype_to_py, STRING),
 
-            SQLTypes.SQL_DOUBLE : (self._float_to_py,NUMBER),
-            SQLTypes.SQL_FLOAT : (self._float_to_py,NUMBER),
-            SQLTypes.SQL_REAL : (self._float_to_py,NUMBER),
+            _SQL_DOUBLE : (self._float_to_py,NUMBER),
+            _SQL_FLOAT : (self._float_to_py,NUMBER),
+            _SQL_REAL : (self._float_to_py,NUMBER),
 
-            SQLTypes.SQL_DECIMAL : (self._numeric_to_py,NUMBER),
-            SQLTypes.SQL_NUMERIC : (self._numeric_to_py,NUMBER),
+            _SQL_DECIMAL : (self._numeric_to_py,NUMBER),
+            _SQL_NUMERIC : (self._numeric_to_py,NUMBER),
 
-            SQLTypes.SQL_BIT : (self._integral_to_py, NUMBER),
-            SQLTypes.SQL_TINYINT : (self._integral_to_py, NUMBER),
-            SQLTypes.SQL_SMALLINT : (self._integral_to_py, NUMBER),
-            SQLTypes.SQL_INTEGER : (self._integral_to_py, NUMBER),
-            SQLTypes.SQL_BIGINT : (self._integral_to_py, NUMBER),
+            _SQL_BIT : (self._integral_to_py, NUMBER),
+            _SQL_TINYINT : (self._integral_to_py, NUMBER),
+            _SQL_SMALLINT : (self._integral_to_py, NUMBER),
+            _SQL_INTEGER : (self._integral_to_py, NUMBER),
+            _SQL_BIGINT : (self._integral_to_py, NUMBER),
 
-            SQLTypes.SQL_DATE : (self._datetime_to_py, DATETIME),
-            SQLTypes.SQL_TYPE_DATE : (self._datetime_to_py, DATETIME),
+            _SQL_DATE : (self._datetime_to_py, DATETIME),
+            _SQL_TYPE_DATE : (self._datetime_to_py, DATETIME),
 
-            SQLTypes.SQL_TIMESTAMP : (self._datetime_to_py, DATETIME),
-            SQLTypes.SQL_TYPE_TIMESTAMP : (self._datetime_to_py, DATETIME),
-            #SQLTypes.SQL_SS_TIMESTAMPOFFSET : self._datetime_to_py,
+            _SQL_TIMESTAMP : (self._datetime_to_py, DATETIME),
+            _SQL_TYPE_TIMESTAMP : (self._datetime_to_py, DATETIME),
+            #_SQL_SS_TIMESTAMPOFFSET : self._datetime_to_py,
 
-            SQLTypes.SQL_TIME : (self._time_to_py,DATETIME),
-            SQLTypes.SQL_TYPE_TIME : (self._time_to_py,DATETIME),
-            #SQLTypes.SQL_SS_TIME2 : self._time_to_py,
+            _SQL_TIME : (self._time_to_py,DATETIME),
+            _SQL_TYPE_TIME : (self._time_to_py,DATETIME),
+            #_SQL_SS_TIME2 : self._time_to_py,
 
-            SQLTypes.SQL_SS_UDT : (self._binary_to_py, BINARY),
-            SQLTypes.SQL_BINARY : (self._binary_to_py, BINARY),
-            SQLTypes.SQL_VARBINARY : (self._binary_to_py, BINARY),
-            SQLTypes.SQL_LONGVARBINARY : (self._binary_to_py, BINARY)
+            _SQL_BINARY : (self._binary_to_py, BINARY),
+            _SQL_VARBINARY : (self._binary_to_py, BINARY),
+            _SQL_LONGVARBINARY : (self._binary_to_py, BINARY),
+            _SQL_SS_UDT : (self._binary_to_py, BINARY),
 
         }
         connection._register_cursor(self)
