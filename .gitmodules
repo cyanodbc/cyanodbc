@@ -1,0 +1,4 @@
+[submodule "src/cython/nanodbc"]
+	path = src/cython/nanodbc
+	url = https://github.com/detule/nanodbc
+	branch = cyanodbc
