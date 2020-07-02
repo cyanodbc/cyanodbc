@@ -198,37 +198,28 @@ cdef class Cursor:
         # except RuntimeError as e:
         #     raise DatabaseError("Error in Executing") from e
 
-
-
-
-   
-
     @property
     def description(self):
         cdef int i
-        self.c_description = _Description()
-        
-        if self.c_result:
-            
-            for i in range(self.c_result.columns()):
-                name = self.c_result.column_name(i).decode()
-                type_code = self._datatype_get_map[self.c_result.column_datatype(i)][1] 
-                display_size = self.c_result.column_size(i)
-                internal_size = None
-                precision = self.c_result.column_decimal_digits(i)
-                scale = None
-                null_ok = None
-                # TODO: Inline these above variables
+
+        # If we have a result, populate the description field if None
+        if self.c_description is None and self.c_result_ptr:
+            self.c_description = _Description()
+            for i in range(deref(self.c_result_ptr).columns()):
+                # TODO: Revisit the None's below
                 col_desc = ColumnDescription(
-                    name,
-                    type_code,
-                    display_size,
-                    internal_size,
-                    precision, scale,
-                    null_ok)
+                    deref(self.c_result_ptr).column_name(i).decode(),
+                    self._datatype_get_map[deref(self.c_result_ptr).column_datatype(i)][1],
+
+                    deref(self.c_result_ptr).column_size(i),
+                    None,
+                    deref(self.c_result_ptr).column_decimal_digits(i),
+		    None,
+                    None)
                 self.c_description._add(col_desc)
 
-        if self.c_description.column_descriptions:
+
+        if self.c_description and self.c_description.column_descriptions:
             return tuple(self.c_description.column_descriptions)
         else:
             return None
@@ -290,3 +281,4 @@ cdef class Cursor:
     def close(self):
         self.c_stmt_ptr.reset()
         self.c_result_ptr.reset()
+        self.c_description = None
