@@ -256,28 +256,24 @@ cdef class Cursor:
             raise DatabaseError("Error in Fetching: " + str(e)) from e
 
     def fetchall(self):
-        if self.c_result_ptr:
-            return [list(i) for i in self.rows()]
-        else:
-            raise DatabaseError("Message")
+        if self.description is None:
+            raise DatabaseError("Query not executed or did not return results.")
+        return [list(i) for i in self.rows()]
 
     def fetchone(self):
-        if self.c_result_ptr:
-            try:
-                return list(next(self.rows()))
-            except StopIteration:
-                return
-            # return [list(i) for i in self.rows()]
-        else:
-            raise DatabaseError("Message")
+        if self.description is None:
+            raise DatabaseError("Query not executed or did not return results.")
+        try:
+            return list(next(self.rows()))
+        except StopIteration:
+            return
         
     def fetchmany(self, size=None):
+        if self.description is None:
+            raise DatabaseError("Query not executed or did not return results.")
         if size is None:
             size = self.arraysize
-        if self.c_result_ptr:
-            return [list(i) for i in itertools.islice(self.rows(), size)]
-        else:
-            raise DatabaseError("Message")
+        return [list(i) for i in itertools.islice(self.rows(), size)]
 
     def close(self):
         self.c_stmt_ptr.reset()
