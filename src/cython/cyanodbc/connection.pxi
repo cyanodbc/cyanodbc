@@ -5,10 +5,23 @@ cdef class Connection:
     cdef unique_ptr[nanodbc.tables] c_tbl_ptr
     cdef unique_ptr[nanodbc.columns] c_col_ptr
 
+    cdef list cursors
+
     def __cinit__(self):
         self.c_cnxn = nanodbc.connection()
         self.c_cat_ptr.reset(new nanodbc.catalog(self.c_cnxn))
         self.c_trxn_ptr.reset(new nanodbc.transaction(self.c_cnxn))
+
+    def __init__(self):
+        self.cursors = []
+
+    def _register_cursor(self, cursor not None):
+        if cursor not in self.cursors:
+            self.cursors.append(cursor)
+
+    def _deregister_cursor(self, cursor not None):
+        if cursor in self.cursors:
+            self.cursors.remove(cursor)
 
     def _connect(self, dsn, username=None, password=None, long timeout=0):
         try:
@@ -171,7 +184,8 @@ cdef class Connection:
         return NotSupportedError
     
     def cursor(self):
-        return Cursor(self)
+        cursor = Cursor(self)
+        return cursor
 
     def connected(self):
         """
@@ -182,6 +196,13 @@ cdef class Connection:
     def close(self):
         #try:
             if self.c_cnxn.connected():
+                for crsr in self.cursors:
+                    try:
+                        crsr.close()
+                    except RuntimeError as e:
+                        # There are many reasons why trying to close all
+                        # cursors could fail.
+                        continue
                 self.c_cnxn.disconnect()
             else:
                 raise DatabaseError("Connection inactive")

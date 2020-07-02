@@ -139,6 +139,7 @@ cdef class Cursor:
 
 
         }
+        connection._register_cursor(self)
         self.c_description = None
 
     @property
