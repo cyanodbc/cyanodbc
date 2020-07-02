@@ -43,6 +43,8 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
 
     cdef cppclass result:
         result() except +
+        result(result&) except +
+
 
         long rowset_size() except +
         long affected_rows() except +

@@ -21,7 +21,7 @@ cdef class _Description:
 
 
 cdef class Cursor:
-    cdef nanodbc.result c_result
+    cdef unique_ptr[nanodbc.result] c_result_ptr
     cdef unique_ptr[nanodbc.statement] c_stmt_ptr
     cdef dict _datatype_get_map
 
@@ -56,31 +56,31 @@ cdef class Cursor:
         return
 
     def _binary_to_py(self, short i):
-        cdef vector[nanodbc.uint8_t] c_res = self.c_result.get[vector[nanodbc.uint8_t]](i)
+        cdef vector[nanodbc.uint8_t] c_res = deref(self.c_result_ptr).get[vector[nanodbc.uint8_t]](i)
         cdef nanodbc.charP c_res_char = nanodbc.reinterpret_cast[nanodbc.charP](c_res.data())
         return <object>nanodbc.PyBytes_FromStringAndSize(c_res_char, c_res.size())
 
     def _chartype_to_py(self, short i):
-        # cdef const_wchar_t *ptr = self.c_result.get[nanodbc.wide_string](i).c_str()
+        # cdef const_wchar_t *ptr = deref(self.c_result_ptr).get[nanodbc.wide_string](i).c_str()
         # return <object>nanodbc.PyUnicode_FromWideChar(ptr, -1)
-        return self.c_result.get[string](i).decode()
+        return deref(self.c_result_ptr).get[string](i).decode()
 
     def _numeric_to_py(self, short i):
-        # cdef const_wchar_t *ptr = self.c_result.get[nanodbc.wide_string](i).c_str()
+        # cdef const_wchar_t *ptr = deref(self.c_result_ptr).get[nanodbc.wide_string](i).c_str()
         # return <object>nanodbc.PyUnicode_FromWideChar(ptr, -1)
         with decimal.localcontext() as ctx:
-            ctx.prec = self.c_result.column_decimal_digits(i)   # Perform a high precision calculation
-            return decimal.Decimal(self.c_result.get[string](i).decode())
+            ctx.prec = deref(self.c_result_ptr).column_decimal_digits(i)   # Perform a high precision calculation
+            return decimal.Decimal(deref(self.c_result_ptr).get[string](i).decode())
 
     def _float_to_py(self, short i):
-        return self.c_result.get[double](i) # python float == C double
+        return deref(self.c_result_ptr).get[double](i) # python float == C double
     
     def _integral_to_py(self, short i):
-        return self.c_result.get[nanodbc.ULong](i)
+        return deref(self.c_result_ptr).get[nanodbc.ULong](i)
 
     def _datetime_to_py(self, short i):
         cdef nanodbc.timestamp c_timestamp
-        c_timestamp = self.c_result.get[nanodbc.timestamp](i)
+        c_timestamp = deref(self.c_result_ptr).get[nanodbc.timestamp](i)
         # Maybe if Time component is Zero return Date, else Datetime? - But what about TZ?
         return cpython.datetime.datetime_new(c_timestamp.year,c_timestamp.month,
             c_timestamp.day, c_timestamp.hour, c_timestamp.min,
@@ -88,12 +88,11 @@ cdef class Cursor:
 
     def _time_to_py(self, short i):
         cdef nanodbc.time c_time
-        c_time = self.c_result.get[nanodbc.time](i)
+        c_time = deref(self.c_result_ptr).get[nanodbc.time](i)
         return cpython.datetime.time_new(c_time.hour, c_time.min, c_time.sec, 0, None)
     
 
     def __cinit__(self):
-        self.c_result = nanodbc.result()
         self._arraysize = 1
         self._timeout = 0
 
@@ -144,12 +143,14 @@ cdef class Cursor:
 
     @property
     def rowcount(self):
-        #return -1
-        return self.c_result.affected_rows() or -1
+        res = -1
+        if self.c_result_ptr:
+            res = deref(self.c_result_ptr).affected_rows()
+        return res or -1
 
     @property
     def has_affected_rows(self):
-        return self.c_result.has_affected_rows()
+        return deref(self.c_result_ptr).has_affected_rows()
 
     
 
@@ -177,7 +178,7 @@ cdef class Cursor:
 
             deref(self.c_stmt_ptr).bind_strings(idx, values, <bool_*>nulls.data(), nanodbc.param_direction.PARAM_IN)
         try:
-            self.c_result = deref(self.c_stmt_ptr).execute(max(1, len(seq_of_parameters)), self.timeout)
+            self.c_result_ptr.reset(new nanodbc.result(deref(self.c_stmt_ptr).execute(max(1, len(seq_of_parameters)), self.timeout)))
             
         except RuntimeError as e:
             raise DatabaseError("Error in Executing: " + str(e)) from e
@@ -242,18 +243,19 @@ cdef class Cursor:
         Row = None
         _ = self.description # Initialise self.c_description
         try:
-            while self.c_result.next():
+            while deref(self.c_result_ptr).next():
                 if Row is None:
                     
                     Row = namedtuple(
                         'Row',
-                        [self.c_result.column_name(i).decode() for i in range(self.c_result.columns())],
+                        [deref(self.c_result_ptr).column_name(i).decode() \
+			for i in range(deref(self.c_result_ptr).columns())],
                         rename=True)
                 row_values = []
-                for i in range(self.c_result.columns()):
-                    sql_datatype = self.c_result.column_datatype(i)
+                for i in range(deref(self.c_result_ptr).columns()):
+                    sql_datatype = deref(self.c_result_ptr).column_datatype(i)
                     # print("Datatype: %s", sql_datatype)
-                    if self.c_result.is_null(i):
+                    if deref(self.c_result_ptr).is_null(i):
                         row_values.append(None)
                     else:    
                         row_values.append(self._datatype_get_map[sql_datatype][0](i))
@@ -262,13 +264,13 @@ cdef class Cursor:
             raise DatabaseError("Error in Fetching: " + str(e)) from e
 
     def fetchall(self):
-        if self.c_result:
+        if self.c_result_ptr:
             return [list(i) for i in self.rows()]
         else:
             raise DatabaseError("Message")
 
     def fetchone(self):
-        if self.c_result:
+        if self.c_result_ptr:
             try:
                 return list(next(self.rows()))
             except StopIteration:
@@ -280,10 +282,11 @@ cdef class Cursor:
     def fetchmany(self, size=None):
         if size is None:
             size = self.arraysize
-        if self.c_result:
+        if self.c_result_ptr:
             return [list(i) for i in itertools.islice(self.rows(), size)]
         else:
             raise DatabaseError("Message")
 
     def close(self):
         self.c_stmt_ptr.reset()
+        self.c_result_ptr.reset()
