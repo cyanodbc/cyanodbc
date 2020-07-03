@@ -28,7 +28,7 @@ init:
 clone_folder: c:\projects\myproject
 
 # fetch repository as zip archive
-shallow_clone: true                 # default is "false"
+shallow_clone: false                 # default is "false"
 
 # set clone depth
 clone_depth: 5                      # clone entire repository history if not defined
@@ -44,13 +44,15 @@ cache:
 
 # enable service required for build/tests
 services:
-  - mssql2014           # start SQL Server 2014 Express
+  - mssql2016           # start SQL Server 2016 Developer
   - mysql               # start MySQL 5.6 service
   - postgresql          # start PostgreSQL 9.5 service
   - iis                 # start IIS
 
 # scripts that run after cloning repository
 install:
+  # Update submodules
+  - cmd: git submodule update --init --recursive
   - cmd: set PATH=%PATH%;C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts
   - cmd: conda create -q -y -n py35 python=3.5
   - cmd: call activate py35
@@ -63,36 +65,19 @@ install:
   - cmd: curl -fsS -o psqlodbc_10_03_0000-x64.zip https://ftp.postgresql.org/pub/odbc/versions/msi/psqlodbc_10_03_0000-x64.zip
   - cmd: 7z.exe x psqlodbc_10_03_0000-x64.zip
   - cmd: msiexec /i psqlodbc_x64.msi /qn /norestart
-  - cmd: git clone https://github.com/nanodbc/nanodbc.git c:\projects\nanodbc
-  
-  
-
-
-
 
 
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
 
-
-
-
 # scripts to run before build
 before_build:
   - cmd: choco install -y codecov
   - cmd: refreshenv
   - cmd: set PATH=%PATH%;C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts
-  - cmd: cd c:\projects\nanodbc
-  - cmd: mkdir build
-  - cmd: cd build
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64
   - cmd: call activate py35
-  - cmd: cmake --version
-  - cmd: cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE% -DNANODBC_DISABLE_TESTS=ON ..
-  - cmd: cmake --build . --target install
-  
-  
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
@@ -109,9 +94,7 @@ build_script:
   - cmd: cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=OFF ..
   - cmd: cmake --build .
   - cmd: cd src\cython
-  - cmd: python setup.py bdist_wheel 
-  
-
+  - cmd: python setup.py bdist_wheel --plat-name win_amd64
 
 # scripts to run after build (working directory and environment changes are persisted from the previous steps)
 after_build:
@@ -130,7 +113,6 @@ before_package:
 before_test:
 
   - cd C:\projects\myproject
-  
 
 #  - pip install C:\projects\myproject\build\src\python\dist\Cyanodbc-0.0.1-py3-none-any.whl
 
@@ -139,7 +121,7 @@ before_test:
 test_script:
 # Generate coverage.xml
   - pip install -e c:\projects\myproject\build\src\cython
-  - pytest --cov=cyanodbc tests --cov-report=xml
+  - pytest -v --cov=cyanodbc tests --cov-report=xml
   - pip uninstall -y cyanodbc
 # Verify that the built production pacakge works
   - ps: |
