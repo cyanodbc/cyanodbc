@@ -22,6 +22,7 @@ cdef class _Description:
 
 cdef class Cursor:
     cdef nanodbc.result c_result
+    cdef unique_ptr[nanodbc.statement] c_stmt_ptr
     cdef dict _datatype_get_map
 
     cdef Connection _connection
@@ -153,15 +154,16 @@ cdef class Cursor:
     
 
     def executemany(self, query, seq_of_parameters):
-        cdef nanodbc.statement  stmt = self._connection.c_stmt
+        self.close()
+        self.c_stmt_ptr.reset(new nanodbc.statement(self._connection.c_cnxn))
+
         cdef vector[string] values
         cdef vector[char] nulls
 
-        if not stmt.connected():
+        if not deref(self.c_stmt_ptr).connected():
             raise DatabaseError("Connection Disconnected.")
 
-        stmt.close()
-        stmt.prepare(self._connection.c_cnxn, query.encode(), self.timeout)
+        deref(self.c_stmt_ptr).prepare(query.encode(), self.timeout)
 
         transpose = zip(*seq_of_parameters)
         
@@ -173,12 +175,12 @@ cdef class Cursor:
 
             [nulls.push_back(True) if i is None else nulls.push_back(False) for i in col ]
 
-            stmt.bind_strings(idx, values, <bool_*>nulls.data(), nanodbc.param_direction.PARAM_IN)
+            deref(self.c_stmt_ptr).bind_strings(idx, values, <bool_*>nulls.data(), nanodbc.param_direction.PARAM_IN)
         try:
-            self.c_result = stmt.execute(max(1, len(seq_of_parameters)), self.timeout)
+            self.c_result = deref(self.c_stmt_ptr).execute(max(1, len(seq_of_parameters)), self.timeout)
             
         except RuntimeError as e:
-            raise DatabaseError("Error in Executing") from e
+            raise DatabaseError("Error in Executing: " + str(e)) from e
         
 
     def execute(self, query, parameters=None):
@@ -257,7 +259,7 @@ cdef class Cursor:
                         row_values.append(self._datatype_get_map[sql_datatype][0](i))
                 yield Row(*row_values)
         except RuntimeError as e:
-            raise DatabaseError from e
+            raise DatabaseError("Error in Fetching: " + str(e)) from e
 
     def fetchall(self):
         if self.c_result:
@@ -279,7 +281,9 @@ cdef class Cursor:
         if size is None:
             size = self.arraysize
         if self.c_result:
-            
             return [list(i) for i in itertools.islice(self.rows(), size)]
         else:
             raise DatabaseError("Message")
+
+    def close(self):
+        self.c_stmt_ptr.reset()

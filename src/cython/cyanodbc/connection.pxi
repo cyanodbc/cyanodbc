@@ -1,6 +1,5 @@
 cdef class Connection:
     cdef nanodbc.connection c_cnxn
-    cdef nanodbc.statement  c_stmt
     cdef unique_ptr[nanodbc.transaction] c_trxn_ptr
 
     def __cinit__(self):
@@ -13,8 +12,7 @@ cdef class Connection:
             self.c_cnxn.connect(dsn.encode(),username.encode(), password.encode(), timeout)
         else:
             self.c_cnxn.connect(dsn.encode(), timeout)
-        self.c_stmt = nanodbc.statement(self.c_cnxn)
-    
+
     def commit(self):
         if self.c_cnxn.connected():
             deref(self.c_trxn_ptr).commit()
@@ -69,7 +67,6 @@ cdef class Connection:
     def close(self):
         #try:
             if self.c_cnxn.connected():
-                self.c_stmt.close()
                 self.c_cnxn.disconnect()
             else:
                 raise DatabaseError("Connection inactive")
