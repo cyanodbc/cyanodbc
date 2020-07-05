@@ -12,7 +12,7 @@ option(BUILD_SHARED_LIBS "Build shared library" OFF)
 
 option(CYANODBC_TARGET_PYTHON "Target Python Version to build against(Default: 3.7)" "3.7")
 option(CYANODBC_ENABLE_COVERAGE "Enable Coverage reporting(Default: off)" OFF)
-
+option(NANODBC_ENABLE_BOOST "nanodbc: Use Boost for Unicode string convertions (requires Boost.Locale)" OFF)
 
 ########################################
 ## cyanodbc version
@@ -67,6 +67,27 @@ elseif(MSVC)
   if(MSVC_VERSION LESS 1700)
     message(FATAL_ERROR, "cyanodbc requires C++11-compliant compiler")
   endif()
+endif()
+
+if(NANODBC_ENABLE_BOOST)
+  set(Boost_USE_STATIC_LIBS ON)
+  set(Boost_USE_MULTITHREADED ON)
+  find_package(Boost COMPONENTS locale REQUIRED)
+  if(Boost_FOUND)
+    add_definitions(-DNANODBC_ENABLE_BOOST)
+    include_directories(${Boost_INCLUDE_DIRS})
+    link_directories(${CMAKE_BINARY_DIR}/lib ${Boost_LIBRARY_DIRS})
+  else()
+    message(FATAL_ERROR "can not find boost")
+  endif()
+endif()
+message(STATUS "nanodbc feature: Enable Boost - ${NANODBC_ENABLE_BOOST}")
+
+IF(NOT DEFINED NANODBC_ODBC_VERSION)
+  message(STATUS "nanodbc feature: ODBC Version Override - OFF")
+else()
+  message(STATUS "nanodbc feature: ODBC Version Override - ${NANODBC_ODBC_VERSION}")
+  add_definitions(-DNANODBC_ODBC_VERSION=${NANODBC_ODBC_VERSION})
 endif()
 
 ########################################
