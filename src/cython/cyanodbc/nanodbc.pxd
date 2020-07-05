@@ -120,7 +120,7 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
             const string& table,
             const string& schema,
             const string& catalog
-        )
+        ) except+
         list_[string] list_catalogs() except+
         list_[string] list_schemas() except+
 

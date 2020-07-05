@@ -82,38 +82,41 @@ cdef class Connection:
         :param column: If interested in a specific column only enter here.  Otherwise if empty string, should return information on all columns.
         """
         out = []
-        self.c_col_ptr.reset(new nanodbc.columns(
-            deref(self.c_cat_ptr).find_columns(
-                column = column.encode(),
-                table = table.encode(),
-                schema = schema.encode(),
-                catalog = catalog.encode()
-            )
-        ))
-        Row = namedtuple(
-            'Row',
-            ["catalog", "schema", "table", "column", "data_type", "type_name", "column_size", "buffer_length", "decimal_digits", "numeric_precision_radix", "nullable", "remarks", "default", "sql_data_type", "sql_datetime_subtype", "char_octet_length"],
-            rename=True)
-        while deref(self.c_col_ptr).next():
-            out.append(Row(*[
-                deref(self.c_col_ptr).table_catalog().decode(),
-                deref(self.c_col_ptr).table_schema().decode(),
-                deref(self.c_col_ptr).table_name().decode(),
-                deref(self.c_col_ptr).column_name().decode(),
-                deref(self.c_col_ptr).data_type(),
-                deref(self.c_col_ptr).type_name().decode(),
-                deref(self.c_col_ptr).column_size(),
-                deref(self.c_col_ptr).buffer_length(),
-                deref(self.c_col_ptr).decimal_digits(),
-                deref(self.c_col_ptr).numeric_precision_radix(),
-                deref(self.c_col_ptr).nullable(),
-                deref(self.c_col_ptr).remarks().decode(),
-                deref(self.c_col_ptr).column_default().decode(),
-                deref(self.c_col_ptr).sql_data_type(),
-                deref(self.c_col_ptr).sql_datetime_subtype(),
-                deref(self.c_col_ptr).char_octet_length()
-            ]))
-        return out
+        try:
+            self.c_col_ptr.reset(new nanodbc.columns(
+                deref(self.c_cat_ptr).find_columns(
+                    column = column.encode(),
+                    table = table.encode(),
+                    schema = schema.encode(),
+                    catalog = catalog.encode()
+                )
+            ))
+            Row = namedtuple(
+                'Row',
+                ["catalog", "schema", "table", "column", "data_type", "type_name", "column_size", "buffer_length", "decimal_digits", "numeric_precision_radix", "nullable", "remarks", "default", "sql_data_type", "sql_datetime_subtype", "char_octet_length"],
+                rename=True)
+            while deref(self.c_col_ptr).next():
+                out.append(Row(*[
+                    deref(self.c_col_ptr).table_catalog().decode(),
+                    deref(self.c_col_ptr).table_schema().decode(),
+                    deref(self.c_col_ptr).table_name().decode(),
+                    deref(self.c_col_ptr).column_name().decode(),
+                    deref(self.c_col_ptr).data_type(),
+                    deref(self.c_col_ptr).type_name().decode(),
+                    deref(self.c_col_ptr).column_size(),
+                    deref(self.c_col_ptr).buffer_length(),
+                    deref(self.c_col_ptr).decimal_digits(),
+                    deref(self.c_col_ptr).numeric_precision_radix(),
+                    deref(self.c_col_ptr).nullable(),
+                    deref(self.c_col_ptr).remarks().decode(),
+                    deref(self.c_col_ptr).column_default().decode(),
+                    deref(self.c_col_ptr).sql_data_type(),
+                    deref(self.c_col_ptr).sql_datetime_subtype(),
+                    deref(self.c_col_ptr).char_octet_length()
+                ]))
+            return out
+        except RuntimeError as e:
+            raise DatabaseError("Error in find_columns: " + str(e)) from e
 
     def list_catalogs(self):
         """
