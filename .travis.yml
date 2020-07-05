@@ -1,36 +1,55 @@
 language: minimal
-os: osx
-osx_image: xcode10
+
+jobs:
+  include:
+    - os: osx
+      osx_image: xcode11
+      env:
+        - CYANOCC=/usr/local/opt/llvm/bin/clang
+        - CYANOCXX=/usr/local/opt/llvm/bin/clang++
+        - CYANOLDFLAGS="-undefined dynamic_lookup"
+        - CYANOCMAKEFLAGS=-DNANODBC_ENABLE_BOOST=ON -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3
+        - PLATWHEEL=macosx_10_11_intel
+        - CONDASCRIPT=Miniconda3-latest-MacOSX-x86_64.sh
+    - os: linux
+      addons:
+        apt:
+          packages:
+            - unixodbc
+            - unixodbc-dev
+            - libsqliteodbc
+      env:
+        - CYANOCC=
+        - CYANOCXX=
+        - CYANOLDFLAGS=
+        - CYANOCMAKEFLAGS=-DNANODBC_ODBC_VERSION=SQL_OV_ODBC3
+        - PLATWHEEL=linux_x86_64
+        - CONDASCRIPT=Miniconda3-latest-Linux-x86_64.sh
+
+
 before_install:
-  - brew bundle
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew bundle ; fi
+  - wget https://repo.continuum.io/miniconda/${CONDASCRIPT} -O ~/miniconda.sh
   - bash ~/miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda create -q -y -n py35 python=3.5
   - source $HOME/miniconda/bin/activate py35
   - python -m pip install --upgrade pip
-  - conda install -q -y cmake pytest cython ninja pytest-cov
-  - conda install -q -y -c conda-forge codecov
-  - brew services run postgresql
-
-install:
-  - git clone https://github.com/nanodbc/nanodbc.git $HOME/nanodbc
-  - mkdir $HOME/nanodbc/build
-  - cd $HOME/nanodbc/build
-  - CC=/usr/local/opt/llvm/bin/clang CXX=/usr/local/opt/llvm/bin/clang++ cmake -G Ninja -DNANODBC_ENABLE_BOOST=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME -DNANODBC_DISABLE_TESTS=ON ..
-  - cmake --build . --target install
+  - conda install -q -y cmake pytest cython ninja pytest-cov 
+  - conda install -q -y -c conda-forge codecov distro
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew services run postgresql; fi
 
 script:
   - cd $TRAVIS_BUILD_DIR
+  # On OSX, where the file system may be case insensitive, one of the c++ headers
+  # that includes <version>, picks up this nanodbc file.
+  - rm src/cython/nanodbc/VERSION
   - mkdir build
   - cd build
-  - CC=/usr/local/opt/llvm/bin/clang CXX=/usr/local/opt/llvm/bin/clang++ LDFLAGS="-undefined dynamic_lookup" cmake -G Ninja -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=OFF ..
+  - CC=${CYANOCC} CXX=${CYANOCXX} LDFLAGS=${CYANOLDFLAGS} cmake -G Ninja ${CYANOCMAKEFLAGS} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=OFF ..
   - cmake --build .
   - cd $TRAVIS_BUILD_DIR/build/src/cython
-  - python setup.py bdist_wheel
-  - pip install $TRAVIS_BUILD_DIR/build/src/cython/dist/Cyanodbc-0.0.1-py3-none-any.whl
-  - cp $TRAVIS_BUILD_DIR/ci/.odbcinst.ini ~/
+  - python setup.py bdist_wheel --plat-name ${PLATWHEEL}
+  - pip install $TRAVIS_BUILD_DIR/build/src/cython/dist/Cyanodbc*.whl
+  - if [[ -f ${TRAVIS_BUILD_DIR}/ci/travis/ini_setup.$TRAVIS_OS_NAME.sh ]]; then travis_retry ${TRAVIS_BUILD_DIR}/ci/travis/ini_setup.$TRAVIS_OS_NAME.sh; fi
   - pytest --cov=cyanodbc $TRAVIS_BUILD_DIR/tests
-
-
-

@@ -58,7 +58,7 @@ install:
   - cmd: call activate py35
   - cmd: conda install -q -y cmake pytest cython ninja pytest-cov
   - cmd: python -m pip install --upgrade pip
-  #- cmd: conda install -q -y -c conda-forge codecov
+  - cmd: conda install -q -y -c conda-forge distro
   - cmd: call deactivate
   - cmd: curl -fsS -o sqliteodbc_w64.exe http://www.ch-werner.de/sqliteodbc/sqliteodbc_w64.exe
   - cmd: sqliteodbc_w64.exe /S
@@ -85,13 +85,13 @@ build_script:
   - cmd: cd c:\projects\myproject
   - cmd: mkdir build
   - cmd: cd build
-  - cmd: cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=ON ..
+  - cmd: cmake -G Ninja -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=ON ..
   - cmd: cmake --build .
 # Build Production Version
   - cmd: cd c:\projects\myproject
   - cmd: mkdir buildprod
   - cmd: cd buildprod
-  - cmd: cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=OFF ..
+  - cmd: cmake -G Ninja -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=OFF ..
   - cmd: cmake --build .
   - cmd: cd src\cython
   - cmd: python setup.py bdist_wheel --plat-name win_amd64
