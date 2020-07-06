@@ -1,7 +1,9 @@
 import cyanodbc
 import dbapi20
+import pytest
+import sys
 
-
+@pytest.mark.skipif(sys.platform in ["Darwin", "darwin", "linux"], reason = "SQL Server Unavailable")
 class CyanodbcDBApiTest(dbapi20.DatabaseAPI20Test):
     driver = cyanodbc
     connect_args = ("Driver={ODBC Driver 11 for SQL Server};Server=(local);UID=sa;PWD=Password12!;Database=tempdb;", )
