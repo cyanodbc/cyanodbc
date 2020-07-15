@@ -49,7 +49,12 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
     ctypedef wstring wide_string
 
     result execute(connection& conn, const string& query, long batch_operations, long timeout) except +
+    list_[datasource] list_datasources() except +
     
+    cdef cppclass datasource:
+        string name
+        string driver
+
     cdef cppclass date:
         int16_t year
         int16_t month

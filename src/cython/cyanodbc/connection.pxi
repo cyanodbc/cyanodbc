@@ -265,3 +265,10 @@ def connect(dsn, username=None, password=None, long timeout=0):
     cnxn = Connection()
     cnxn._connect(dsn, username, password, timeout)
     return cnxn
+
+def datasources():
+    out = {}
+    res = nanodbc.list_datasources()
+    for r in res:
+        out.update({ r.name.decode() : r.driver.decode() })
+    return out
