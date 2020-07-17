@@ -15,68 +15,40 @@ To build Cyanodbc, you'll need CMake, Ninja, Cython, and Python. Additionally to
 pip install requirements.txt
 
 ```
-### Build Nanodbc
 
-The first step is to build and install Nanodbc.
-
-On Unix-like or OSX systems try:
+On all platforms the first step is cloning the repo and seting up the build directory
 
 ```{sh}
-git clone https://github.com/nanodbc/nanodbc.git
-cd nanodbc
-mkdir build
-cd build
-cmake -G Ninja -DNANODBC_ENABLE_BOOST=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME -DNANODBC_DISABLE_TESTS=ON ..
-cmake --build . --target install
-```
-
-On windows you might try:
-
-```{cmd}
-git clone https://github.com/nanodbc/nanodbc.git
-cd nanodbc
-mkdir build
-cd build
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE% -DNANODBC_DISABLE_TESTS=ON ..
-cmake --build . --target install
-
-```
-
-
-(Note: Please check the [Nanodbc Project](https://github.com/nanodbc/nanodbc) to know more about the cmake options used)
-
-### Building Cyanodbc
-
-Now to the interesting part- building cyanodbc. 
-
-On Unix-like or OSX
-```{sh}
-git clone https://github.com/rdhushyanth/cyanodbc.git
+git clone --recurse-submodules https://github.com/cyanodbc/cyanodbc.git
 cd cyanodbc
 mkdir build
 cd build
-
-LDFLAGS="-undefined dynamic_lookup" cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 ..
-
-
 ```
 
+From there, the next step is to build the shared library, using the cmake build system:
 
-On Windows, make sure you have Visual Studio 2015(or VS 2017 with 2015 C++) installed.
-
-```{cmd}
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64
-
-git clone https://github.com/rdhushyanth/cyanodbc.git
-cd cyanodbc
-mkdir build
-cd build
-
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 ..
-
+```{sh}
+cmake -G Ninja -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3 -DCMAKE_BUILD_TYPE=Release -DCYANODBC_TARGET_PYTHON=3.5 ..
+cmake --build .
 ```
 
-Note: Make sure the CYANODBC_TARGET_PYTHON is set to the corresponding python version you are using - this works around certain quirks of CMake python identification
+Cmake notes:
+
+* Make sure the variable DCYANODBC_TARGET_PYTHON is set to the corresponding python version you are using - this works around certain quirks of CMake python identification.
+* Nanodbc is built and linked automatically when you build cyanodbc.  We expose the following cmake compile-time options:
+
+| CMake&nbsp;Option                  | Possible&nbsp;Values | Details |
+| -----------------------------------| ---------------------| ------- |
+| `NANODBC_ENABLE_BOOST`             | `OFF` or `ON`        | Use Boost for Unicode string convertions (requires [Boost.Locale][boost-locale]). Workaround to issue [#24](https://github.com/nanodbc/nanodbc/issues/24). |
+| `NANODBC_ODBC_VERSION`             | `SQL_OV_ODBC3[...]`  | Forces ODBC version to use. Default is `SQL_OV_ODBC3_80` if available, otherwise `SQL_OV_ODBC3`. |
+
+Please check the [Nanodbc Project](https://github.com/nanodbc/nanodbc) for more information on these as well as other options that can be made available, if there is a need.
+
+Finally, once the shared library is built, you can install the package using `pip`
+
+```{sh}
+pip install -e src/cython
+```
 
 ## Testing
 Pytest is used for running the tests. 
