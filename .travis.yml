@@ -7,7 +7,6 @@ jobs:
       env:
         - CYANOCC=/usr/local/opt/llvm/bin/clang
         - CYANOCXX=/usr/local/opt/llvm/bin/clang++
-        - CYANOLDFLAGS="-undefined dynamic_lookup"
         - CYANOCMAKEFLAGS=-DNANODBC_ENABLE_BOOST=ON -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3
         - PLATWHEEL=macosx_10_11_intel
         - CONDASCRIPT=Miniconda3-latest-MacOSX-x86_64.sh
@@ -21,7 +20,6 @@ jobs:
       env:
         - CYANOCC=
         - CYANOCXX=
-        - CYANOLDFLAGS=
         - CYANOCMAKEFLAGS=-DNANODBC_ODBC_VERSION=SQL_OV_ODBC3
         - PLATWHEEL=linux_x86_64
         - CONDASCRIPT=Miniconda3-latest-Linux-x86_64.sh
@@ -46,7 +44,7 @@ script:
   - rm src/cython/nanodbc/VERSION
   - mkdir build
   - cd build
-  - CC=${CYANOCC} CXX=${CYANOCXX} LDFLAGS=${CYANOLDFLAGS} cmake -G Ninja ${CYANOCMAKEFLAGS} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=OFF ..
+  - CC=${CYANOCC} CXX=${CYANOCXX} cmake -G Ninja ${CYANOCMAKEFLAGS} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=OFF ..
   - cmake --build .
   - cd $TRAVIS_BUILD_DIR/build/src/cython
   - python setup.py bdist_wheel --plat-name ${PLATWHEEL}

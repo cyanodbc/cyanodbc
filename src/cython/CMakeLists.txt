@@ -52,6 +52,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 else()
     target_link_libraries(_cyanodbc ODBC::ODBC)
     set_property (TARGET _cyanodbc PROPERTY SUFFIX ".so")
+    if( APPLE )
+        set_property(TARGET _cyanodbc PROPERTY LINK_FLAGS "-undefined dynamic_lookup" )
+    endif()
 endif()
 
 set_target_properties( _cyanodbc
