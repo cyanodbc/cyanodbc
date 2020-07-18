@@ -89,6 +89,9 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
         bint last()
         bint next() except +
         bint is_null(short column) except +
+        bool_ is_bound(short column) except +
+        void unbind(short column) except +
+        void unbind() except +
 
         T get[T](short column) except+
         short column(const string& column_name) const

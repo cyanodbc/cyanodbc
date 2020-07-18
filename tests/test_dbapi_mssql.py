@@ -126,3 +126,24 @@ class CyanodbcDBApiTest(dbapi20.DatabaseAPI20Test):
         finally:
             con.close()
 
+    # Microsoft's SQL Server OEM driver requires that SQLGetData be used
+    # only after the last bound column.  Note that generically this doesn't
+    # work with nanodbc since nanodbc binds buffers greedily.  To deal with this
+    # internally for Microsoft's driver we unbind buffers past the first unbound
+    # (blob/long) column.
+    def test_out_of_order_blob(self):
+        con = self._connect()
+        try:
+            tbl_name = "test_get_data_order"
+            param_values = [1, 'this is varchar max', 11, 'this is text']
+            cur = con.cursor()
+            cur.execute('CREATE TABLE %s (c1 INT, c2 VARCHAR(MAX), c3 INT, c4 text)' % tbl_name)
+            cur.execute("INSERT INTO %s VALUES(?, ?, ?, ?)" % tbl_name, param_values)
+            cur.execute("SELECT c1, c2, c3, c4 FROM %s" % tbl_name)
+            res = cur.fetchall()
+
+            self.assertEqual(res, [param_values])
+            cur.execute("DROP TABLE %s" % tbl_name)
+        finally:
+            con.close()
+

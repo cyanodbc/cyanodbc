@@ -6,6 +6,7 @@ cdef class Connection:
     cdef unique_ptr[nanodbc.columns] c_col_ptr
 
     cdef list cursors
+    cdef int _get_data_any_order
 
     def __cinit__(self):
         self.c_cnxn = nanodbc.connection()
@@ -14,6 +15,7 @@ cdef class Connection:
 
     def __init__(self):
         self.cursors = []
+        self._get_data_any_order = -1
 
     def _register_cursor(self, cursor not None):
         if cursor not in self.cursors:
@@ -154,6 +156,24 @@ cdef class Connection:
     def get_info(self, short info_type):
         return self.c_cnxn.get_info[string](info_type).decode()
 
+    @property
+    def get_data_any_order(self):
+        if self._get_data_any_order == -1:
+        # In a perfect world we would query
+        # SQL_GETDATA_EXTENSIONS to learn whether
+        # a driver supports this extension.  However
+        # some drivers don't accurately report this
+        # (looking at you FreeTDS).  So for now we just lean
+        # on experience.  We know the microsoft drivers
+        # do not support this.
+            if re.search("msodbcsql",
+                self.get_info(SQLGetInfo.SQL_DRIVER_NAME)) and \
+                (self.dbms_name == "Microsoft SQL Server"):
+                self._get_data_any_order = 0
+            else:
+                self._get_data_any_order = 1
+
+        return self._get_data_any_order == 1
 
     @property    
     def Error(self):

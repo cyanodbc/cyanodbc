@@ -1,5 +1,4 @@
 
-
 ColumnDescription = namedtuple(
     'ColumnDescription',
     ['name', 'type_code', 'display_size', 'internal_size', 'precision', 'scale', 'null_ok'],
@@ -70,7 +69,17 @@ cdef class Cursor:
         # return <object>nanodbc.PyUnicode_FromWideChar(ptr, -1)
         with decimal.localcontext() as ctx:
             ctx.prec = deref(self.c_result_ptr).column_decimal_digits(i)   # Perform a high precision calculation
-            return decimal.Decimal(deref(self.c_result_ptr).get[string](i).decode())
+            # There is a bug/limitation in ODBC drivers for SQL Server
+            # (and possibly others) which causes SQLBindCol() to never
+            # write SQL_NOT_NULL to the length/indicator buffer unless you
+            # also bind the data column. nanodbc's is_null() will return
+            # correct values for these columns if you ensure that
+            # SQLGetData() has been called for that column (i.e. *after* get()
+            # or get_ref() is called).
+            res = deref(self.c_result_ptr).get[string](i).decode()
+            if deref(self.c_result_ptr).is_null(i):
+                return None
+            return decimal.Decimal(res)
 
     def _float_to_py(self, short i):
         return deref(self.c_result_ptr).get[double](i) # python float == C double
@@ -81,6 +90,8 @@ cdef class Cursor:
     def _datetime_to_py(self, short i):
         cdef nanodbc.timestamp c_timestamp
         c_timestamp = deref(self.c_result_ptr).get[nanodbc.timestamp](i)
+        if deref(self.c_result_ptr).is_null(i):
+            return None
         # Maybe if Time component is Zero return Date, else Datetime? - But what about TZ?
         return cpython.datetime.datetime_new(c_timestamp.year,c_timestamp.month,
             c_timestamp.day, c_timestamp.hour, c_timestamp.min,
@@ -89,8 +100,22 @@ cdef class Cursor:
     def _time_to_py(self, short i):
         cdef nanodbc.time c_time
         c_time = deref(self.c_result_ptr).get[nanodbc.time](i)
+        if deref(self.c_result_ptr).is_null(i):
+            return None
         return cpython.datetime.time_new(c_time.hour, c_time.min, c_time.sec, 0, None)
-    
+
+    def _unbind_if_needed(self):
+        found_unbound = False
+        try:
+            if not self.c_result_ptr or self._connection.get_data_any_order:
+                return
+            for i in range(deref(self.c_result_ptr).columns()):
+                is_bound = deref(self.c_result_ptr).is_bound(i)
+                if found_unbound and is_bound:
+                    deref(self.c_result_ptr).unbind(i)
+                found_unbound = found_unbound or (not is_bound)
+        except RuntimeError as e:
+            raise DatabaseError("Error while unbinding: " + str(e)) from e
 
     def __cinit__(self):
         self._arraysize = 1
@@ -181,7 +206,7 @@ cdef class Cursor:
             deref(self.c_stmt_ptr).bind_strings(idx, values, <bool_*>nulls.data(), nanodbc.param_direction.PARAM_IN)
         try:
             self.c_result_ptr.reset(new nanodbc.result(deref(self.c_stmt_ptr).execute(max(1, len(seq_of_parameters)), self.timeout)))
-            
+
         except RuntimeError as e:
             raise DatabaseError("Error in Executing: " + str(e)) from e
         
@@ -235,6 +260,7 @@ cdef class Cursor:
         cdef short i
         Row = None
         _ = self.description # Initialise self.c_description
+        self._unbind_if_needed()
         try:
             while deref(self.c_result_ptr).next():
                 if Row is None:

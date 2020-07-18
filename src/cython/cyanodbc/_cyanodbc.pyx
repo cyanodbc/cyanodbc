@@ -12,6 +12,7 @@ import numbers
 import time
 import traceback
 import itertools
+import re
 from libcpp.memory cimport unique_ptr
 from cython.operator cimport dereference as deref
 
