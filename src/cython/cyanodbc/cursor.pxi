@@ -238,7 +238,6 @@ cdef class Cursor:
                 col_desc = ColumnDescription(
                     deref(self.c_result_ptr).column_name(i).decode(),
                     self._datatype_get_map[deref(self.c_result_ptr).column_datatype(i)][1],
-
                     deref(self.c_result_ptr).column_size(i),
                     None,
                     deref(self.c_result_ptr).column_decimal_digits(i),
@@ -259,27 +258,25 @@ cdef class Cursor:
 
     def rows(self):
         cdef short i
-        Row = None
-        _ = self.description # Initialise self.c_description
+        if self.description is None:
+            raise DatabaseError("Query not executed or did not return results.")
         self._unbind_if_needed()
         try:
+            Row = namedtuple(
+                            'Row',
+                            [c.name for c in self.description],
+                            rename = True)
+            sql_datatypes = [deref(self.c_result_ptr).column_datatype(i) \
+                            for i in range(deref(self.c_result_ptr).columns())]
             while deref(self.c_result_ptr).next():
-                if Row is None:
-                    
-                    Row = namedtuple(
-                        'Row',
-                        [deref(self.c_result_ptr).column_name(i).decode() \
-			for i in range(deref(self.c_result_ptr).columns())],
-                        rename=True)
-                row_values = []
+                res = []
                 for i in range(deref(self.c_result_ptr).columns()):
-                    sql_datatype = deref(self.c_result_ptr).column_datatype(i)
-                    # print("Datatype: %s", sql_datatype)
                     if deref(self.c_result_ptr).is_null(i):
-                        row_values.append(None)
-                    else:    
-                        row_values.append(self._datatype_get_map[sql_datatype][0](i))
-                yield Row(*row_values)
+                        res.append(None)
+                    # print("Datatype: %s", sql_datatype)
+                    else:
+                        res.append(self._datatype_get_map[sql_datatypes[i]][0](i))
+                yield Row(*res)
         except RuntimeError as e:
             raise DatabaseError("Error in Fetching: " + str(e)) from e
 
