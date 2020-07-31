@@ -1,4 +1,4 @@
 [submodule "src/cython/nanodbc"]
 	path = src/cython/nanodbc
 	url = https://github.com/cyanodbc/nanodbc
-	branch = cyanodbc
+	branch = cyanodbc-0.0.2
