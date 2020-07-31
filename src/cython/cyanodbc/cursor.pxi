@@ -198,6 +198,7 @@ cdef class Cursor:
         for col, idx in zip(transpose, itertools.count()):
             # values = vector[string](len(col))
             # print(idx, list(col))
+            values.clear()
 
             [values.push_back(str(i).encode()) for i in col]
 
