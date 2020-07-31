@@ -22,6 +22,10 @@ image: Visual Studio 2015
 
 environment:
   global:
+    PYPI_USERNAME:
+      secure: tDxhzP9LtKCXqpM+eo2TMA==
+    PYPI_PASSWORD:
+      secure: ytHZzhf/CyMWp5QZ+tRywQ==
     TEST_PYPI_USERNAME:
       secure: tDxhzP9LtKCXqpM+eo2TMA==
     TEST_PYPI_PASSWORD:
