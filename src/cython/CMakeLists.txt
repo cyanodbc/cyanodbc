@@ -54,6 +54,10 @@ else()
     set_property (TARGET _cyanodbc PROPERTY SUFFIX ".so")
     if( APPLE )
         set_property(TARGET _cyanodbc PROPERTY LINK_FLAGS "-undefined dynamic_lookup" )
+        # Work around 3.8/Cython issue: https://github.com/cython/cython/issues/3474
+        if(${Python3_VERSION_MINOR} STREQUAL "8")
+            target_compile_options(_cyanodbc PUBLIC "-Wno-deprecated-declarations")
+        endif()
     endif()
 endif()
 
