@@ -141,8 +141,13 @@ script:
   - pytest --cov=cyanodbc $TRAVIS_BUILD_DIR/tests
 
 deploy:
-  skip_cleanup: true
-  provider: script
-  script: $TRAVIS_BUILD_DIR/ci/travis/deploy.sh
-  on:
-    branches: master
+  - provider: script
+    skip_cleanup: true
+    script: $TRAVIS_BUILD_DIR/ci/travis/deploy.sh
+    on:
+      branch: master
+  - provider: script
+    skip_cleanup: true
+    script: $TRAVIS_BUILD_DIR/ci/travis/deploy.sh
+    on:
+      tags: true
