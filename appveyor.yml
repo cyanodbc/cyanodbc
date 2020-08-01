@@ -11,7 +11,7 @@ version:  1.0.{build}-{branch}
 skip_branch_with_pr: true
 
 # Maximum number of concurrent jobs for the project
-max_jobs: 1
+max_jobs: 4
 
 #---------------------------------#
 #    environment configuration    #
@@ -30,6 +30,12 @@ environment:
       secure: tDxhzP9LtKCXqpM+eo2TMA==
     TEST_PYPI_PASSWORD:
       secure: ytHZzhf/CyMWp5QZ+tRywQ==
+
+  matrix:
+    - PYTHONVER: 3.5
+    - PYTHONVER: 3.6
+    - PYTHONVER: 3.7
+    - PYTHONVER: 3.8
 
 # scripts that are called at very beginning, before repo cloning
 init:
@@ -65,12 +71,12 @@ install:
   # Update submodules
   - cmd: git submodule update --init --recursive
   - cmd: set PATH=%PATH%;C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts
-  - cmd: conda create -q -y -n py35 python=3.5
-  - cmd: call activate py35
+  - cmd: conda create -q -y -n mypy python=%PYTHONVER%
+  - cmd: call activate mypy
   - cmd: conda install -q -y cmake pytest cython ninja pytest-cov twine
   - cmd: python -m pip install --upgrade pip
   - cmd: conda install -q -y -c conda-forge distro
-  - cmd: call deactivate
+  - cmd: conda deactivate
   - cmd: curl -fsS -o sqliteodbc_w64.exe http://www.ch-werner.de/sqliteodbc/sqliteodbc_w64.exe
   - cmd: sqliteodbc_w64.exe /S
   - cmd: curl -fsS -o psqlodbc_10_03_0000-x64.zip https://ftp.postgresql.org/pub/odbc/versions/msi/psqlodbc_10_03_0000-x64.zip
@@ -88,7 +94,7 @@ before_build:
   - cmd: refreshenv
   - cmd: set PATH=%PATH%;C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64
-  - cmd: call activate py35
+  - cmd: call activate mypy
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
@@ -96,13 +102,13 @@ build_script:
   - cmd: cd c:\projects\myproject
   - cmd: mkdir build
   - cmd: cd build
-  - cmd: cmake -G Ninja -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=ON ..
+  - cmd: cmake -G Ninja -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=%PYTHONVER% -DCYANODBC_ENABLE_COVERAGE=ON ..
   - cmd: cmake --build .
 # Build Production Version
   - cmd: cd c:\projects\myproject
   - cmd: mkdir buildprod
   - cmd: cd buildprod
-  - cmd: cmake -G Ninja -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=OFF ..
+  - cmd: cmake -G Ninja -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%USERPROFILE%  -DCYANODBC_TARGET_PYTHON=%PYTHONVER% -DCYANODBC_ENABLE_COVERAGE=OFF ..
   - cmd: cmake --build .
   - cmd: cd src\cython
   - cmd: python setup.py bdist_wheel --plat-name win_amd64

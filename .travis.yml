@@ -12,6 +12,34 @@ jobs:
     - os: osx
       osx_image: xcode11
       env:
+        - PYTHONVER=3.5
+        - CYANOCC=/usr/local/opt/llvm/bin/clang
+        - CYANOCXX=/usr/local/opt/llvm/bin/clang++
+        - CYANOCMAKEFLAGS=-DNANODBC_ENABLE_BOOST=ON -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3
+        - PLATWHEEL=macosx_10_11_intel
+        - CONDASCRIPT=Miniconda3-latest-MacOSX-x86_64.sh
+    - os: osx
+      osx_image: xcode11
+      env:
+        - PYTHONVER=3.6
+        - CYANOCC=/usr/local/opt/llvm/bin/clang
+        - CYANOCXX=/usr/local/opt/llvm/bin/clang++
+        - CYANOCMAKEFLAGS=-DNANODBC_ENABLE_BOOST=ON -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3
+        - PLATWHEEL=macosx_10_11_intel
+        - CONDASCRIPT=Miniconda3-latest-MacOSX-x86_64.sh
+    - os: osx
+      osx_image: xcode11
+      env:
+        - PYTHONVER=3.7
+        - CYANOCC=/usr/local/opt/llvm/bin/clang
+        - CYANOCXX=/usr/local/opt/llvm/bin/clang++
+        - CYANOCMAKEFLAGS=-DNANODBC_ENABLE_BOOST=ON -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3
+        - PLATWHEEL=macosx_10_11_intel
+        - CONDASCRIPT=Miniconda3-latest-MacOSX-x86_64.sh
+    - os: osx
+      osx_image: xcode11
+      env:
+        - PYTHONVER=3.8
         - CYANOCC=/usr/local/opt/llvm/bin/clang
         - CYANOCXX=/usr/local/opt/llvm/bin/clang++
         - CYANOCMAKEFLAGS=-DNANODBC_ENABLE_BOOST=ON -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3
@@ -25,6 +53,49 @@ jobs:
             - unixodbc-dev
             - libsqliteodbc
       env:
+        - PYTHONVER=3.5
+        - CYANOCC=
+        - CYANOCXX=
+        - CYANOCMAKEFLAGS=-DNANODBC_ODBC_VERSION=SQL_OV_ODBC3
+        - PLATWHEEL=manylinux1_x86_64
+        - CONDASCRIPT=Miniconda3-latest-Linux-x86_64.sh
+    - os: linux
+      addons:
+        apt:
+          packages:
+            - unixodbc
+            - unixodbc-dev
+            - libsqliteodbc
+      env:
+        - PYTHONVER=3.6
+        - CYANOCC=
+        - CYANOCXX=
+        - CYANOCMAKEFLAGS=-DNANODBC_ODBC_VERSION=SQL_OV_ODBC3
+        - PLATWHEEL=manylinux1_x86_64
+        - CONDASCRIPT=Miniconda3-latest-Linux-x86_64.sh
+    - os: linux
+      addons:
+        apt:
+          packages:
+            - unixodbc
+            - unixodbc-dev
+            - libsqliteodbc
+      env:
+        - PYTHONVER=3.7
+        - CYANOCC=
+        - CYANOCXX=
+        - CYANOCMAKEFLAGS=-DNANODBC_ODBC_VERSION=SQL_OV_ODBC3
+        - PLATWHEEL=manylinux1_x86_64
+        - CONDASCRIPT=Miniconda3-latest-Linux-x86_64.sh
+    - os: linux
+      addons:
+        apt:
+          packages:
+            - unixodbc
+            - unixodbc-dev
+            - libsqliteodbc
+      env:
+        - PYTHONVER=3.8
         - CYANOCC=
         - CYANOCXX=
         - CYANOCMAKEFLAGS=-DNANODBC_ODBC_VERSION=SQL_OV_ODBC3
@@ -37,8 +108,8 @@ before_install:
   - wget https://repo.continuum.io/miniconda/${CONDASCRIPT} -O ~/miniconda.sh
   - bash ~/miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
-  - conda create -q -y -n py35 python=3.5
-  - source $HOME/miniconda/bin/activate py35
+  - conda create -q -y -n mypy python=${PYTHONVER}
+  - source $HOME/miniconda/bin/activate mypy
   - python -m pip install --upgrade pip
   - conda install -q -y cmake pytest cython ninja pytest-cov twine
   - conda install -q -y -c conda-forge codecov distro
@@ -61,7 +132,7 @@ script:
     fi
   - mkdir build
   - cd build
-  - CC=${CYANOCC} CXX=${CYANOCXX} cmake -G Ninja ${CYANOCMAKEFLAGS} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=3.5 -DCYANODBC_ENABLE_COVERAGE=OFF ..
+  - CC=${CYANOCC} CXX=${CYANOCXX} cmake -G Ninja ${CYANOCMAKEFLAGS} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME  -DCYANODBC_TARGET_PYTHON=${PYTHONVER} -DCYANODBC_ENABLE_COVERAGE=OFF ..
   - cmake --build .
   - cd $TRAVIS_BUILD_DIR/build/src/cython
   - python setup.py bdist_wheel --plat-name ${PLATWHEEL}

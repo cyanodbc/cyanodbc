@@ -1,8 +1,16 @@
 from setuptools import setup, find_packages
-import os
+from setuptools.dist import Distribution
+
+# https://stackoverflow.com/questions/45150304/how-to-force-a-python-wheel-to-be-platform-specific-when-building-it
+class BinaryDistribution(Distribution):
+    """Distribution which always forces a binary package with platform name"""
+    def has_ext_modules(self):
+        return True
+
 setup(name='${PROJECT_NAME}',
       version='${CYANODBC_VERSION}',
       package_dir={ '': "." },
       package_data={'':['*.so', "*.pxd", "*.pyd"]},
       include_package_data=True,
-      packages=find_packages())
+      packages=find_packages(),
+      distclass = BinaryDistribution)
