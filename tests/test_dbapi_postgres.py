@@ -22,3 +22,22 @@ class CyanodbcDBApiTest(dbapi20.DatabaseAPI20Test):
     @pytest.mark.skip(reason = "PSQL odbc driver returns rowcount 1 inserting two rows with prepared statement")
     def test_executemany():
         super().test_executemany()
+
+    def test_zero_decimal_context(self):
+        params = [ ['Phone2', 100.12], ['Tablet2', 500.321] ]
+        con = self._connect()
+        crsr = con.cursor()
+        try:
+            crsr.execute("DROP TABLE IF EXISTS public.%sproducts" % self.table_prefix)
+            crsr.execute( \
+                "CREATE TABLE public.%sproducts "
+                "(id SERIAL PRIMARY KEY, name VARCHAR(100) NOT NULL, price NUMERIC(5, 0))" % self.table_prefix)
+            crsr.executemany("INSERT INTO public.%sproducts (name, price) VALUES (?, ?)" % self.table_prefix, params)
+            crsr.execute("SELECT * FROM public.%sproducts" % self.table_prefix)
+            res = crsr.fetchall()
+            self.assertEqual(float(res[0][2]), 100.0)
+            self.assertEqual(float(res[1][2]), 500.0)
+            crsr.execute("DROP TABLE public.%sproducts" % self.table_prefix)
+
+        finally:
+            con.close()

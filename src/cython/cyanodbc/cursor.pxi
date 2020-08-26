@@ -68,7 +68,8 @@ cdef class Cursor:
         # cdef const_wchar_t *ptr = deref(self.c_result_ptr).get[nanodbc.wide_string](i).c_str()
         # return <object>nanodbc.PyUnicode_FromWideChar(ptr, -1)
         with decimal.localcontext() as ctx:
-            ctx.prec = deref(self.c_result_ptr).column_decimal_digits(i)   # Perform a high precision calculation
+            # Perform a high precision calculation
+            ctx.prec = max(1, deref(self.c_result_ptr).column_decimal_digits(i))
             # There is a bug/limitation in ODBC drivers for SQL Server
             # (and possibly others) which causes SQLBindCol() to never
             # write SQL_NOT_NULL to the length/indicator buffer unless you
