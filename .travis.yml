@@ -113,7 +113,12 @@ before_install:
   - python -m pip install --upgrade pip
   - conda install -q -y cmake pytest cython ninja pytest-cov twine
   - conda install -q -y -c conda-forge codecov distro
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew services run postgresql; fi
+  - |
+    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      brew services run postgresql
+      sleep 10
+      createuser -s postgres
+    fi
 
 script:
   - cd $TRAVIS_BUILD_DIR
