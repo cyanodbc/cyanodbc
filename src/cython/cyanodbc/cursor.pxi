@@ -198,7 +198,7 @@ cdef class Cursor:
     def executemany(self, query, seq_of_parameters):
         cdef vector[string] values
         cdef vector[char] nulls
-        cdef short i
+        cdef short c_idx
         cdef long batch_operations
         cdef long timeout
 
@@ -222,9 +222,9 @@ cdef class Cursor:
             [values.push_back(str(i).encode()) for i in col]
 
             [nulls.push_back(True) if i is None else nulls.push_back(False) for i in col ]
-            i = idx
+            c_idx = idx
             with nogil:
-                deref(self.c_stmt_ptr).bind_strings(i, values, <bool_*>nulls.data(), nanodbc.param_direction.PARAM_IN)
+                deref(self.c_stmt_ptr).bind_strings(c_idx, values, <bool_*>nulls.data(), nanodbc.param_direction.PARAM_IN)
 
         batch_operations = max(1, len(seq_of_parameters))
         timeout = self.timeout
