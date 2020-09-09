@@ -15,7 +15,7 @@ cdef extern from "Python.h":
     PyObject* PyUnicode_FromWideChar(wchar_t *w, Py_ssize_t size)
     PyObject* PyBytes_FromStringAndSize(const char *v, Py_ssize_t len)
 
-cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc::catalog":
+cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc::catalog" nogil:
    cdef cppclass tables:
         tables(tables&)
         bool_ next()
@@ -45,7 +45,7 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc::catalog":
         short sql_datetime_subtype() const
         long char_octet_length() const
 
-cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc":
+cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc" nogil:
     ctypedef wstring wide_string
 
     result execute(connection& conn, const string& query, long batch_operations, long timeout) except +

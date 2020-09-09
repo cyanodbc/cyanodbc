@@ -1,3 +1,5 @@
+from libcpp.list cimport list as list_
+
 cdef class Connection:
     cdef nanodbc.connection c_cnxn
     cdef unique_ptr[nanodbc.transaction] c_trxn_ptr
@@ -47,15 +49,20 @@ cdef class Connection:
         :param type: Type to search - should be 'VIEW' or 'TABLE'.  If an empty string, in theory the driver should return both.
         """
         out = []
+        cdef string c_table = table.encode()
+        cdef string c_type = type.encode()
+        cdef string c_schema = schema.encode()
+        cdef string c_catalog = catalog.encode()
         try:
-            self.c_tbl_ptr.reset(new nanodbc.tables(
-                deref(self.c_cat_ptr).find_tables(
-                    table = table.encode(),
-                    type = type.encode(),
-                    schema = schema.encode(),
-                    catalog = catalog.encode()
-                )
-            ))
+            with nogil:
+                self.c_tbl_ptr.reset(new nanodbc.tables(
+                    deref(self.c_cat_ptr).find_tables(
+                        table = c_table,
+                        type = c_type,
+                        schema = c_schema,
+                        catalog = c_catalog
+                    )
+                ))
             Row = namedtuple(
                 'Row',
                 ["catalog", "schema", "name", "type"],
@@ -84,15 +91,20 @@ cdef class Connection:
         :param column: If interested in a specific column only enter here.  Otherwise if empty string, should return information on all columns.
         """
         out = []
+        cdef string c_column = column.encode()
+        cdef string c_table = table.encode()
+        cdef string c_schema = schema.encode()
+        cdef string c_catalog = catalog.encode()
         try:
-            self.c_col_ptr.reset(new nanodbc.columns(
-                deref(self.c_cat_ptr).find_columns(
-                    column = column.encode(),
-                    table = table.encode(),
-                    schema = schema.encode(),
-                    catalog = catalog.encode()
-                )
-            ))
+            with nogil:
+                self.c_col_ptr.reset(new nanodbc.columns(
+                    deref(self.c_cat_ptr).find_columns(
+                        column = c_column,
+                        table = c_table,
+                        schema = c_schema,
+                        catalog = c_catalog
+                    )
+                ))
             Row = namedtuple(
                 'Row',
                 ["catalog", "schema", "table", "column", "data_type", "type_name", "column_size", "buffer_length", "decimal_digits", "numeric_precision_radix", "nullable", "remarks", "default", "sql_data_type", "sql_datetime_subtype", "char_octet_length"],
@@ -124,8 +136,10 @@ cdef class Connection:
         """
         List all catalogs in the data source attached to the connection.
         """
+        cdef list_[string] res
         try:
-            res = deref(self.c_cat_ptr).list_catalogs()
+            with nogil:
+                res = deref(self.c_cat_ptr).list_catalogs()
         except RuntimeError as e:
             raise DatabaseError("Error in list_catalogs: " + str(e)) from e
         return [a.decode() for a in res]
@@ -134,8 +148,10 @@ cdef class Connection:
         """
         List all schemas in the current catalog.
         """
+        cdef list_[string] res
         try:
-            res = deref(self.c_cat_ptr).list_schemas()
+            with nogil:
+                res = deref(self.c_cat_ptr).list_schemas()
         except RuntimeError as e:
             raise DatabaseError("Error in list_schemas: " + str(e)) from e
         return [a.decode() for a in res]

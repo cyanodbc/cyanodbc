@@ -55,18 +55,24 @@ cdef class Cursor:
         return
 
     def _binary_to_py(self, short i):
-        cdef vector[nanodbc.uint8_t] c_res = deref(self.c_result_ptr).get[vector[nanodbc.uint8_t]](i)
+        cdef vector[nanodbc.uint8_t] c_res
+        with nogil:
+            c_res = deref(self.c_result_ptr).get[vector[nanodbc.uint8_t]](i)
         cdef nanodbc.charP c_res_char = nanodbc.reinterpret_cast[nanodbc.charP](c_res.data())
         return <object>nanodbc.PyBytes_FromStringAndSize(c_res_char, c_res.size())
 
     def _chartype_to_py(self, short i):
         # cdef const_wchar_t *ptr = deref(self.c_result_ptr).get[nanodbc.wide_string](i).c_str()
         # return <object>nanodbc.PyUnicode_FromWideChar(ptr, -1)
-        return deref(self.c_result_ptr).get[string](i).decode()
+        cdef string c_res
+        with nogil:
+            c_res = deref(self.c_result_ptr).get[string](i)
+        return c_res.decode()
 
     def _numeric_to_py(self, short i):
         # cdef const_wchar_t *ptr = deref(self.c_result_ptr).get[nanodbc.wide_string](i).c_str()
         # return <object>nanodbc.PyUnicode_FromWideChar(ptr, -1)
+        cdef string c_res
         with decimal.localcontext() as ctx:
             # Perform a high precision calculation
             ctx.prec = max(1, deref(self.c_result_ptr).column_decimal_digits(i))
@@ -77,33 +83,44 @@ cdef class Cursor:
             # correct values for these columns if you ensure that
             # SQLGetData() has been called for that column (i.e. *after* get()
             # or get_ref() is called).
-            res = deref(self.c_result_ptr).get[string](i).decode()
+            with nogil:
+                c_res = deref(self.c_result_ptr).get[string](i)
+            res = c_res.decode()
             if deref(self.c_result_ptr).is_null(i):
                 return None
             return decimal.Decimal(res)
 
     def _float_to_py(self, short i):
-        return deref(self.c_result_ptr).get[double](i) # python float == C double
+        cdef double c_res
+        with nogil:
+            c_res = deref(self.c_result_ptr).get[double](i)
+        return c_res # python float == C double
     
     def _integral_to_py(self, short i):
-        return deref(self.c_result_ptr).get[nanodbc.ULong](i)
+        cdef nanodbc.ULong c_res
+        with nogil:
+            c_res = deref(self.c_result_ptr).get[nanodbc.ULong](i)
+        return c_res
+
 
     def _datetime_to_py(self, short i):
-        cdef nanodbc.timestamp c_timestamp
-        c_timestamp = deref(self.c_result_ptr).get[nanodbc.timestamp](i)
+        cdef nanodbc.timestamp c_res
+        with nogil:
+            c_res = deref(self.c_result_ptr).get[nanodbc.timestamp](i)
         if deref(self.c_result_ptr).is_null(i):
             return None
         # Maybe if Time component is Zero return Date, else Datetime? - But what about TZ?
-        return cpython.datetime.datetime_new(c_timestamp.year,c_timestamp.month,
-            c_timestamp.day, c_timestamp.hour, c_timestamp.min,
-            c_timestamp.sec, <int>(c_timestamp.fract/1E3), None)
+        return cpython.datetime.datetime_new(c_res.year,c_res.month,
+            c_res.day, c_res.hour, c_res.min,
+            c_res.sec, <int>(c_res.fract/1E3), None)
 
     def _time_to_py(self, short i):
-        cdef nanodbc.time c_time
-        c_time = deref(self.c_result_ptr).get[nanodbc.time](i)
+        cdef nanodbc.time c_res
+        with nogil:
+            c_res = deref(self.c_result_ptr).get[nanodbc.time](i)
         if deref(self.c_result_ptr).is_null(i):
             return None
-        return cpython.datetime.time_new(c_time.hour, c_time.min, c_time.sec, 0, None)
+        return cpython.datetime.time_new(c_res.hour, c_res.min, c_res.sec, 0, None)
 
     def _unbind_if_needed(self):
         found_unbound = False
@@ -178,11 +195,12 @@ cdef class Cursor:
     def has_affected_rows(self):
         return deref(self.c_result_ptr).has_affected_rows()
 
-    
-
     def executemany(self, query, seq_of_parameters):
         cdef vector[string] values
         cdef vector[char] nulls
+        cdef short i
+        cdef long batch_operations
+        cdef long timeout
 
         if not self._connection.connected():
             raise DatabaseError("Connection Disconnected.")
@@ -204,10 +222,15 @@ cdef class Cursor:
             [values.push_back(str(i).encode()) for i in col]
 
             [nulls.push_back(True) if i is None else nulls.push_back(False) for i in col ]
+            i = idx
+            with nogil:
+                deref(self.c_stmt_ptr).bind_strings(i, values, <bool_*>nulls.data(), nanodbc.param_direction.PARAM_IN)
 
-            deref(self.c_stmt_ptr).bind_strings(idx, values, <bool_*>nulls.data(), nanodbc.param_direction.PARAM_IN)
+        batch_operations = max(1, len(seq_of_parameters))
+        timeout = self.timeout
         try:
-            self.c_result_ptr.reset(new nanodbc.result(deref(self.c_stmt_ptr).execute(max(1, len(seq_of_parameters)), self.timeout)))
+            with nogil:
+                self.c_result_ptr.reset(new nanodbc.result(deref(self.c_stmt_ptr).execute(batch_operations, timeout)))
 
         except RuntimeError as e:
             raise DatabaseError("Error in Executing: " + str(e)) from e
