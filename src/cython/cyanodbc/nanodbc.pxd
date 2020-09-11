@@ -168,6 +168,7 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc" nogil:
         short parameters()
         void reset_parameters()
         void close() except+
+        void cancel() except+
         bint connected()
         
         void bind[T](

@@ -328,3 +328,18 @@ cdef class Cursor:
         self.c_stmt_ptr.reset()
         self.c_result_ptr.reset()
         self.c_description = None
+
+    def cancel(self):
+        """Cancel execution on a query but leave cursor in a usable state.
+           Note this is different than the close method, where, per PEP249 the
+           cursor should be unusable from that point forward.  This
+           functionality is likely only useful in multi-threaded applications,
+           since query execution blocks completely."""
+
+        try:
+            if self.c_stmt_ptr:
+                deref(self.c_stmt_ptr).cancel()
+        except RuntimeError as e:
+            raise DatabaseError("Error while canceling: " + str(e)) from e
+        self.c_result_ptr.reset()
+        self.c_description = None

@@ -2,6 +2,8 @@ import cyanodbc
 import dbapi20
 import pytest
 import sys
+import threading
+from time import sleep
 
 @pytest.mark.skipif(sys.platform not in ["darwin", "Darwin"], reason = "postgreSQL Unavailable")
 class CyanodbcDBApiTest(dbapi20.DatabaseAPI20Test):
@@ -38,6 +40,29 @@ class CyanodbcDBApiTest(dbapi20.DatabaseAPI20Test):
             self.assertEqual(float(res[0][2]), 100.0)
             self.assertEqual(float(res[1][2]), 500.0)
             crsr.execute("DROP TABLE public.%sproducts" % self.table_prefix)
+
+        finally:
+            con.close()
+
+    def test_cancel(self):
+        con = self._connect()
+        crsr = con.cursor()
+        res = {"test_result": None}
+        event = threading.Event()
+        def f(crsr, res, event):
+            try:
+                crsr.execute("SELECT PG_SLEEP(20)")
+                res["test_result"] = "Failure"
+            except cyanodbc.DatabaseError as e:
+                res["test_result"] = "Success"
+            event.set()
+            return None
+        try:
+            threading.Thread(target = f, args = [crsr, res, event], daemon = True).start()
+            sleep(2) # Give the thread a chance to kick off
+            crsr.cancel()
+            event.wait()
+            self.assertEqual(res["test_result"], "Success")
 
         finally:
             con.close()
