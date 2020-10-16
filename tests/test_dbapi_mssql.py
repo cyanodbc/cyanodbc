@@ -98,6 +98,57 @@ class CyanodbcDBApiTest(dbapi20.DatabaseAPI20Test):
         finally:
             con.close()
 
+    def test_find_procedures(self):
+        con = self._connect()
+        try:
+            con.execute("""
+                CREATE OR ALTER PROCEDURE dbo.cyano_test_proc
+                    @arg_varchar VARCHAR(10), @arg_int INT
+                AS
+                    BEGIN
+                        SELECT @arg_varchar AS A, @arg_int AS B, GETDATE() AS C
+                    END;""")
+
+            procs = con.find_procedures(
+                    catalog = "tempdb",
+                    schema = "",
+                    procedure = "")
+            self.assertIsInstance(procs, list)
+            self.assertEqual(procs[0]._fields, ('catalog', 'schema', 'name', 'remarks', 'type'))
+
+            self.assertIn("cyano_test_proc;1", [p.name for p in procs])
+            procs = con.find_procedures(
+                    catalog = "tempdb",
+                    schema = "",
+                    procedure = "%test_proc"
+            )
+            self.assertIn("cyano_test_proc;1", [p.name for p in procs])
+            cols = con.find_procedure_columns(
+                    catalog = "tempdb",
+                    schema = "dbo",
+                    procedure = "cyano_test_proc",
+                    column = ""
+            )
+            self.assertIsInstance(cols, list)
+            col_names = [c.column for c in cols]
+            self.assertEqual(sorted(col_names), sorted(['@RETURN_VALUE', '@arg_varchar', '@arg_int']))
+            con.execute("DROP PROCEDURE dbo.cyano_test_proc")
+            procs = con.find_procedures(
+                    catalog = "tempdb",
+                    schema = "",
+                    procedure = "")
+            self.assertNotIn("cyano_test_proc;1", [p.name for p in procs])
+            cols = con.find_procedure_columns(
+                    catalog = "tempdb",
+                    schema = "dbo",
+                    procedure = "cyano_test_proc",
+                    column = ""
+            )
+            self.assertEqual(cols, [])
+
+        finally:
+            con.close()
+
     def test_dbms_name(self):
         con = self._connect()
         try:

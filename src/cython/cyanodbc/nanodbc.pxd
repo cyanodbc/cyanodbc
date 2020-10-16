@@ -25,6 +25,36 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc::catalog" nogil:
         string table_type() const
         string table_remarks() const
 
+   cdef cppclass procedures:
+        procedures(procedures&)
+        bool_ next()
+        string procedure_catalog() const
+        string procedure_schema() const
+        string procedure_name() const
+        string procedure_remarks() const
+        short procedure_type() const
+
+   cdef cppclass procedure_columns:
+        procedure_columns(procedure_columns&)
+        bool_ next()
+        string procedure_catalog() const
+        string procedure_schema() const
+        string procedure_name() const
+        string column_name() const
+        short column_type() const
+        short data_type() const
+        string type_name() const
+        long column_size() const
+        long buffer_length() const
+        short decimal_digits() const
+        short numeric_precision_radix() const
+        short nullable() const
+        string remarks() const
+        string column_default() const
+        short sql_data_type() const
+        short sql_datetime_subtype() const
+        long char_octet_length() const
+
    cdef cppclass columns:
         columns(columns&)
         bool_ next()
@@ -126,6 +156,17 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc" nogil:
         columns find_columns(
             const string& column,
             const string& table,
+            const string& schema,
+            const string& catalog
+        ) except+
+        procedures find_procedures(
+            const string& procedure,
+            const string& schema,
+            const string& catalog
+        ) except +
+        procedure_columns find_procedure_columns(
+            const string& column,
+            const string& procedure,
             const string& schema,
             const string& catalog
         ) except+

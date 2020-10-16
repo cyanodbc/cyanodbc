@@ -5,6 +5,8 @@ cdef class Connection:
     cdef unique_ptr[nanodbc.transaction] c_trxn_ptr
     cdef unique_ptr[nanodbc.catalog] c_cat_ptr
     cdef unique_ptr[nanodbc.tables] c_tbl_ptr
+    cdef unique_ptr[nanodbc.procedures] c_proc_ptr
+    cdef unique_ptr[nanodbc.procedure_columns] c_proc_col_ptr
     cdef unique_ptr[nanodbc.columns] c_col_ptr
 
     cdef list cursors
@@ -78,6 +80,46 @@ cdef class Connection:
         except RuntimeError as e:
             raise DatabaseError("Error in find_tables: " + str(e)) from e
 
+    def find_procedures(self, catalog, schema, procedure):
+        """
+        List all procedures in the specified catalog, schema.
+        This is a thin wrapper to the SQLProcedures ODBC endpoint.  For more
+        information, see:
+        https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqltables-function?view=sql-server-ver15
+
+        :param catalog: The catalog to search.
+        :param schema: The schema to search.
+        :param table: The procedure to search for.
+        """
+        out = []
+        cdef string c_procedure = procedure.encode()
+        cdef string c_schema = schema.encode()
+        cdef string c_catalog = catalog.encode()
+        try:
+            with nogil:
+                self.c_proc_ptr.reset(new nanodbc.procedures(
+                    deref(self.c_cat_ptr).find_procedures(
+                        procedure = c_procedure,
+                        schema = c_schema,
+                        catalog = c_catalog
+                    )
+                ))
+            Row = namedtuple(
+                'Row',
+                ["catalog", "schema", "name", "remarks", "type"],
+                rename=True)
+            while deref(self.c_proc_ptr).next():
+                out.append(Row(*[
+                deref(self.c_proc_ptr).procedure_catalog().decode(),
+                deref(self.c_proc_ptr).procedure_schema().decode(),
+                deref(self.c_proc_ptr).procedure_name().decode(),
+                deref(self.c_proc_ptr).procedure_remarks().decode(),
+                deref(self.c_proc_ptr).procedure_type()
+                ]))
+            return out
+        except RuntimeError as e:
+            raise DatabaseError("Error in find_procedures: " + str(e)) from e
+
     def find_columns(self, catalog, schema, table, column):
         """
         List details for columns in the specified table.
@@ -127,6 +169,61 @@ cdef class Connection:
                     deref(self.c_col_ptr).sql_data_type(),
                     deref(self.c_col_ptr).sql_datetime_subtype(),
                     deref(self.c_col_ptr).char_octet_length()
+                ]))
+            return out
+        except RuntimeError as e:
+            raise DatabaseError("Error in find_columns: " + str(e)) from e
+
+    def find_procedure_columns(self, catalog, schema, procedure, column):
+        """
+        List details for columns in the specified table.
+        This is a thin wrapper to the SQLColumns ODBC endpoint.  For more
+        information, see:
+        https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlcolumns-function?view=sql-server-ver15
+
+        :param catalog: The table catalog.
+        :param schema: The table schema.
+        :param procedure: The procedure name.
+        :param column: If interested in a specific column only enter here.  Otherwise if empty string, should return information on all columns.
+        """
+        out = []
+        cdef string c_column = column.encode()
+        cdef string c_procedure = procedure.encode()
+        cdef string c_schema = schema.encode()
+        cdef string c_catalog = catalog.encode()
+        try:
+            with nogil:
+                self.c_proc_col_ptr.reset(new nanodbc.procedure_columns(
+                    deref(self.c_cat_ptr).find_procedure_columns(
+                        column = c_column,
+                        procedure = c_procedure,
+                        schema = c_schema,
+                        catalog = c_catalog
+                    )
+                ))
+            Row = namedtuple(
+                'Row',
+                ["catalog", "schema", "procedure", "column", "column_type", "data_type", "type_name", "column_size", "buffer_length", "decimal_digits", "numeric_precision_radix", "nullable", "remarks", "default", "sql_data_type", "sql_datetime_subtype", "char_octet_length"],
+                rename=True)
+            while deref(self.c_proc_col_ptr).next():
+                out.append(Row(*[
+                    deref(self.c_proc_col_ptr).procedure_catalog().decode(),
+                    deref(self.c_proc_col_ptr).procedure_schema().decode(),
+                    deref(self.c_proc_col_ptr).procedure_name().decode(),
+                    deref(self.c_proc_col_ptr).column_name().decode(),
+                    deref(self.c_proc_col_ptr).column_type(),
+                    deref(self.c_proc_col_ptr).data_type(),
+                    deref(self.c_proc_col_ptr).type_name().decode(),
+                    deref(self.c_proc_col_ptr).column_size(),
+                    deref(self.c_proc_col_ptr).buffer_length(),
+                    deref(self.c_proc_col_ptr).decimal_digits(),
+                    deref(self.c_proc_col_ptr).numeric_precision_radix(),
+                    deref(self.c_proc_col_ptr).nullable(),
+                    deref(self.c_proc_col_ptr).remarks().decode(),
+                    deref(self.c_proc_col_ptr).column_default().decode(),
+                    deref(self.c_proc_col_ptr).sql_data_type(),
+                    deref(self.c_proc_col_ptr).sql_datetime_subtype(),
+                    deref(self.c_proc_col_ptr).char_octet_length()
                 ]))
             return out
         except RuntimeError as e:
