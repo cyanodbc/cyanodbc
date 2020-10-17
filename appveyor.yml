@@ -73,7 +73,7 @@ install:
   - cmd: set PATH=%PATH%;C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts
   - cmd: conda create -q -y -n mypy python=%PYTHONVER%
   - cmd: call activate mypy
-  - cmd: conda install -q -y cmake pytest cython ninja pytest-cov twine
+  - cmd: conda install -q -y cmake pytest cython ninja pytest-cov twine keyring
   - cmd: python -m pip install --upgrade pip
   - cmd: conda install -q -y -c conda-forge distro rfc3986
   - cmd: conda deactivate

@@ -111,7 +111,7 @@ before_install:
   - conda create -q -y -n mypy python=${PYTHONVER}
   - source $HOME/miniconda/bin/activate mypy
   - python -m pip install --upgrade pip
-  - conda install -q -y cmake pytest cython ninja pytest-cov twine
+  - conda install -q -y cmake pytest cython ninja pytest-cov twine keyring
   - conda install -q -y -c conda-forge codecov distro rfc3986
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
