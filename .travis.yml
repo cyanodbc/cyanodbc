@@ -112,7 +112,7 @@ before_install:
   - source $HOME/miniconda/bin/activate mypy
   - python -m pip install --upgrade pip
   - conda install -q -y cmake pytest cython ninja pytest-cov twine
-  - conda install -q -y -c conda-forge codecov distro
+  - conda install -q -y -c conda-forge codecov distro rfc3986
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       brew services run postgresql
