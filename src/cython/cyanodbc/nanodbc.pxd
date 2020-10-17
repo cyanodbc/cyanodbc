@@ -37,23 +37,23 @@ cdef extern from "nanodbc/nanodbc.h" namespace "nanodbc::catalog" nogil:
    cdef cppclass procedure_columns:
         procedure_columns(procedure_columns&)
         bool_ next()
-        string procedure_catalog() const
-        string procedure_schema() const
-        string procedure_name() const
-        string column_name() const
-        short column_type() const
-        short data_type() const
-        string type_name() const
-        long column_size() const
-        long buffer_length() const
-        short decimal_digits() const
-        short numeric_precision_radix() const
-        short nullable() const
-        string remarks() const
-        string column_default() const
-        short sql_data_type() const
-        short sql_datetime_subtype() const
-        long char_octet_length() const
+        string procedure_catalog() except +
+        string procedure_schema() except +
+        string procedure_name() except +
+        string column_name() except +
+        short column_type() except +
+        short data_type() except +
+        string type_name() except +
+        long column_size() except +
+        long buffer_length() except +
+        short decimal_digits() except +
+        short numeric_precision_radix() except +
+        short nullable() except +
+        string remarks()  except +
+        string column_default() except +
+        short sql_data_type() except +
+        short sql_datetime_subtype() except +
+        long char_octet_length() except +
 
    cdef cppclass columns:
         columns(columns&)

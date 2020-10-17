@@ -227,7 +227,7 @@ cdef class Connection:
                 ]))
             return out
         except RuntimeError as e:
-            raise DatabaseError("Error in find_columns: " + str(e)) from e
+            raise DatabaseError("Error in find_procedure_columns: " + str(e)) from e
 
     def list_catalogs(self):
         """
