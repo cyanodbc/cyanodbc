@@ -97,9 +97,9 @@ cdef class Cursor:
         return c_res # python float == C double
     
     def _integral_to_py(self, short i):
-        cdef nanodbc.ULong c_res
+        cdef long c_res
         with nogil:
-            c_res = deref(self.c_result_ptr).get[nanodbc.ULong](i)
+            c_res = deref(self.c_result_ptr).get[long](i)
         return c_res
 
 

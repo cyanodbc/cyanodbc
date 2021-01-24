@@ -8,7 +8,6 @@ from libc.stdint cimport int16_t, int32_t, uint8_t
 from cpython.ref cimport PyObject
 from libc.stddef cimport wchar_t
 from .wstring cimport wstring
-ctypedef unsigned long ULong
 ctypedef char* charP
 
 cdef extern from "Python.h":
