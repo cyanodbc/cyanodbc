@@ -58,6 +58,8 @@ cdef class Cursor:
         cdef vector[nanodbc.uint8_t] c_res
         with nogil:
             c_res = deref(self.c_result_ptr).get[vector[nanodbc.uint8_t]](i)
+        if deref(self.c_result_ptr).is_null(i):
+            return None
         cdef nanodbc.charP c_res_char = nanodbc.reinterpret_cast[nanodbc.charP](c_res.data())
         return <object>nanodbc.PyBytes_FromStringAndSize(c_res_char, c_res.size())
 
@@ -67,6 +69,8 @@ cdef class Cursor:
         cdef string c_res
         with nogil:
             c_res = deref(self.c_result_ptr).get[string](i)
+        if deref(self.c_result_ptr).is_null(i):
+            return None
         return c_res.decode()
 
     def _numeric_to_py(self, short i):
@@ -85,21 +89,25 @@ cdef class Cursor:
             # or get_ref() is called).
             with nogil:
                 c_res = deref(self.c_result_ptr).get[string](i)
-            res = c_res.decode()
             if deref(self.c_result_ptr).is_null(i):
                 return None
+            res = c_res.decode()
             return decimal.Decimal(res)
 
     def _float_to_py(self, short i):
         cdef double c_res
         with nogil:
             c_res = deref(self.c_result_ptr).get[double](i)
+        if deref(self.c_result_ptr).is_null(i):
+            return None
         return c_res # python float == C double
     
     def _integral_to_py(self, short i):
         cdef long c_res
         with nogil:
             c_res = deref(self.c_result_ptr).get[long](i)
+        if deref(self.c_result_ptr).is_null(i):
+            return None
         return c_res
 
 
